@@ -35,7 +35,7 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(Touchord Touchord.c )
+add_executable(Touchord Touchord.c usb_descriptors.c)
 
 pico_set_program_name(Touchord "Touchord")
 pico_set_program_version(Touchord "0.1")
@@ -46,7 +46,9 @@ pico_enable_stdio_usb(Touchord 0)
 
 # Add the standard library to the build
 target_link_libraries(Touchord
-        pico_stdlib)
+        pico_stdlib
+        tinyusb_device
+        tinyusb_board)
 
 # Add the standard include files to the build
 target_include_directories(Touchord PRIVATE
