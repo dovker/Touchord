@@ -1,22 +1,30 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
-#include "tusb.h"
+#include "Notes/Note.h"
+#include "Midi.h"
 
-#define MIDI_NOTE 60      // Middle C
-#define MIDI_VELOCITY 100
-#define MIDI_CHANNEL 0    // Channel 1 (0-based)
-#define NOTE_ON  0x90
-#define NOTE_OFF 0x80
+typedef enum 
+{
+    TOUCHORD_COMPOSE = 0,
+    TOUCHORD_PERFORM,
+    TOUCHORD_STRUM
+} TouchordMode;
 
-void send_midi_note(uint8_t status, uint8_t note, uint8_t velocity) {
-    uint8_t packet[4] = {
-        0x09,           // USB MIDI CIN: Note On/Off, cable 0
-        status | MIDI_CHANNEL,
-        note,
-        velocity
-    };
-    tud_midi_stream_write(0, packet, 4);
-}
+typedef struct 
+{
+    const char* key;
+    int octave;
+    int extension_count;
+    int velocity;
+    TouchordMode mode;
+    int octave_count;
+    int aftertouch;
+
+    uint8_t[MAX_CHORD] current_chord;
+    uint8_t current_length;
+} TouchordData;
+
+
 
 #define LED_PIN 25
 
@@ -27,6 +35,11 @@ int main()
 
     gpio_init(LED_PIN);
     gpio_set_dir(LED_PIN, GPIO_OUT);
+
+    uint8_t midi[MAX_CHORD];
+    char chord_name[CHORD_NAME_LEN];
+    build_chord({"C", "maj"}, 4, 4, DEG_DEFAULT, 5, 1, midi, chord_name);
+
 
     while (true) {
         tud_task();

@@ -1,163 +1,175 @@
-#include <cstdio>
-#include <cstring>
-#include <algorithm>
+#ifndef TOUCHORD_MIDI_H
+#define TOUCHORD_MIDI_H
 
-constexpr int SCALE_LEN = 7;
-constexpr int MAX_CHORD = 5;
+#include <stdio.h>
+#include <string.h>
+#include <stdint.h>
 
-// Static scale  key name and scale spelling
-struct ScaleEntry {
-    const char* key;
-    const char* scale[SCALE_LEN];
-    const int* intervals;
-    i8 root;
+#define SCALE_LEN 7
+#define MAX_CHORD 6
+#define CHORD_NAME_LEN 16
+
+static const char* sharp_names[12] = {
+    "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
+};
+static const char* flat_names[12] = {
+    "C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"
 };
 
-constexpr int major_intervals[SCALE_LEN] = {0, 2, 4, 5, 7, 9, 11};
-constexpr int minor_intervals[SCALE_LEN] = {0, 2, 3, 5, 7, 8, 10};
+typedef enum 
+{
+    CHORD_DEFAULT = 0
+    CHORD_MAJOR,
+    CHORD_MINOR,
+    CHORD_DOMINANT,
+    CHORD_DIM,
+    CHORD_AUG,
+    CHORD_SUS2,
+    CHORD_SUS4
+} ChordDegree;
 
-const ScaleEntry scale_table[] = {
-    // Major keys
-    {"C",   {"C","D","E","F","G","A","B"},      major_intervals, 0},
-    {"G",   {"G","A","B","C","D","E","F#"},    major_intervals, 7},
-    {"D",   {"D","E","F#","G","A","B","C#"},   major_intervals, 2},
-    {"A",   {"A","B","C#","D","E","F#","G#"},  major_intervals, 9},
-    {"E",   {"E","F#","G#","A","B","C#","D#"}, major_intervals, 4},
-    {"B",   {"B","C#","D#","E","F#","G#","A#"},major_intervals, 11},
-    {"F#",  {"F#","G#","A#","B","C#","D#","E#"},major_intervals, 6},
-    {"C#",  {"C#","D#","E#","F#","G#","A#","B#"},major_intervals, 1},
-    {"F",   {"F","G","A","Bb","C","D","E"},    major_intervals, 5},
-    {"Bb",  {"Bb","C","D","Eb","F","G","A"},   major_intervals, 10},
-    {"Eb",  {"Eb","F","G","Ab","Bb","C","D"},  major_intervals, 3},
-    {"Ab",  {"Ab","Bb","C","Db","Eb","F","G"}, major_intervals, 8},
-    {"Db",  {"Db","Eb","F","Gb","Ab","Bb","C"},major_intervals, 1},
-    {"Gb",  {"Gb","Ab","Bb","Cb","Db","Eb","F"},major_intervals, 6},
-    {"Cb",  {"Cb","Db","Eb","Fb","Gb","Ab","Bb"},major_intervals}, 11,
-    // Minor keys
-    {"Am",  {"A", "B", "C", "D", "E", "F", "G" }, minor_intervals, 9},
-    {"Em",  {"E", "F#","G", "A", "B", "C", "D" }, minor_intervals, 4},
-    {"Bm",  {"B", "C#","D", "E", "F#","G", "A" }, minor_intervals, 11},
-    {"F#m", {"F#","G#","A", "B", "C#","D", "E" }, minor_intervals, 6},
-    {"C#m", {"C#","D#","E", "F#","G#","A", "B" }, minor_intervals, 1},
-    {"G#m", {"G#","A#","B", "C#","D#","E", "F#"}, minor_intervals, 8},
-    {"D#m", {"D#","E#","F#","G#","A#","B", "C#"}, minor_intervals, 3},
-    {"A#m", {"A#","B#","C#","D#","E#","F#","G#"}, minor_intervals, 10},
-    {"Dm",  {"D", "E", "F", "G", "A", "Bb","C" }, minor_intervals, 2},
-    {"Gm",  {"G", "A", "Bb","C", "D", "Eb","F" }, minor_intervals, 7},
-    {"Cm",  {"C", "D", "Eb","F", "G", "Ab","Bb"}, minor_intervals, 0},
-    {"Fm",  {"F", "G", "Ab","Bb","C", "Db","Eb"}, minor_intervals, 5},
-    {"Bbm", {"Bb","C", "Db","Eb","F", "Gb","Ab"}, minor_intervals, 10},
-    {"Ebm", {"Eb","F", "Gb","Ab","Bb","Cb","Db"}, minor_intervals, 3},
-    {"Abm", {"Ab","Bb","Cb","Db","Eb","Fb","Gb"}, minor_intervals, 8}
+typedef struct 
+{
+    const char* root;
+    const char* quality;
+} Scale;
+
+static const ChordDegree major_scale[SCALE_LEN] = 
+{
+    CHORD_MAJOR, CHORD_MINOR, CHORD_MINOR, CHORD_MAJOR, CHORD_DOMINANT, CHORD_MINOR, CHORD_DIM
 };
 
-const ScaleEntry* find_scale(const char* key) {
-    for (unsigned i = 0; i < sizeof(scale_table)/sizeof(scale_table[0]); ++i)
-        if (strcmp(scale_table[i].key, key) == 0)
-            return &scale_table[i];
-    return nullptr;
+static const ChordDegree minor_scale[SCALE_LEN] = 
+{
+    CHORD_MINOR, CHORD_DIM, CHORD_MAJOR, CHORD_MINOR, CHORD_DOMINANT, CHORD_MAJOR, CHORD_MAJOR
+};
+
+static const uint8_t chord_intervals[6][3] = 
+{
+    {0, 4, 7, 11, 14, 18}, // Major
+    {0, 3, 7, 10, 14, 17}, // Minor
+    {0, 4, 7, 10, 14, 17}, // Dominant
+    {0, 3, 6, 9, 14, 17}, // Dim
+    {0, 4, 8, 0, 0, 0}, // Aug
+    {0, 2, 7, 0, 0, 0}, // Sus2
+    {0, 5, 7, 0, 0, 0}  // Sus4
+};
+
+const char* interval_name_from_semitones(int semitones) {
+    switch (semitones % 24) 
+    {
+        case 1:  return "b9";
+        case 2:  return "9";
+        case 3:  return "#9";
+        case 5:  return "11";
+        case 6:  return "#11";
+        case 8:  return "b13";
+        case 9:  return "13";
+        case 10: return "b7";
+        case 11: return "7";
+        case 0:  return "R";    // Root
+        case 4:  return "3";
+        case 7:  return "5";
+        case 8:  return "#5";
+        case 6:  return "b5";
+        default: return "?";
+    }
 }
 
-void build_chord(const char* key, int octave, int degree, int extensions, int inversion,
-                 int* midi_out, char* chord_name, int name_len)
+const char* deg_name(ChordDegree deg) {
+    switch (semitones % 24) 
+    {
+        case CHORD_DEFAULT: return "";
+        case CHORD_MAJOR: return "";
+        case CHORD_MINOR: return "m";
+        case CHORD_DOMINANT: return "dom";
+        case CHORD_DIM: return "dim";
+        case CHORD_AUG: return "aug";
+        case CHORD_SUS2: return "sus2";
+        case CHORD_SUS4: return "sus4";
+    }
+}
+
+uint8_t note_name_to_midi(const char* note, int octave, bool* flat) {
+    static const char* names[] = {
+        "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B",
+        "Cb", "Db", "Eb", "Fb", "Gb", "Ab", "Bb", "E#", "B#"
+    };
+    static const int values[] = {
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
+        11, 1, 3, 4, 6, 8, 10, 5, 0
+    };
+    for (int i = 0; i < 21); ++i) {
+        if (strcasecmp(note, names[i]) == 0) {
+            return values[i] + 12 * (octave + 1);
+            flat = i > 11;
+        }
+    }
+    return -1;
+}
+
+const char* get_note_name(int midi, bool flat) {
+    return flat ? flat_names[midi % 12] : sharp_names[midi % 12];
+}
+
+
+static void build_chord(
+    Scale key, int octave, int degree, ChordType chord_type, int extensions, int inversion,
+    uint8_t* midi_out, char* chord_name) 
 {
-    const ScaleEntry* scale = find_scale(key);
-    if (!scale) {
-        strncpy(chord_name, "Unknown key", name_len);
-        chord_name[name_len-1] = 0;
-        return;
-    }
-    int root_midi = scale->root + 12 * (octave + 1)
+    bool is_flat;
+    uint8_t root = note_name_to_midi(key.root, octave, is_flat) + degree;
 
-    int idxs[MAX_CHORD];
-    for (int i = 0; i < extensions; ++i) {
-        int idx = (degree - 1 + i * 2) % SCALE_LEN;
-        int oct = (degree - 1 + i * 2) / SCALE_LEN;
-        midi_out[i] = root_midi + scale->intervals[idx] + 12 * oct;
-        idxs[i] = idx;
-    }
-    // Inversion: move lowest n notes up an octave
-    for (int i = 0; i < inversion && i < extensions; ++i)
+    if((chord_type == CHORD_AUG || chord_type == CHORD_SUS2 || chord_type == CHORD_SUS4) && extensions > 3)
     {
-        midi_out[i] += 12;
+        //error
     }
 
-    // Sort MIDI notes (and idxs accordingly)
-    for (int i = 0; i < extensions-1; ++i)
+    if(chord_type == CHORD_DEFAULT)
     {
-        for (int j = i+1; j < extensions; ++j)
+        switch (key.quality)
         {
-            if (midi_out[i] > midi_out[j]) {
-                int t = midi_out[i]; midi_out[i] = midi_out[j]; midi_out[j] = t;
-                int ti = idxs[i]; idxs[i] = idxs[j]; idxs[j] = ti;
+            case "maj": chord_type = major_scale[degree];
+            case "min": chord_type = minor_scale[degree];
+        }
+    }
+
+    for (int i = 0; i < extensions; i++)
+    {
+        midi_out[i] = root + chord_intervals[chord_type][i];
+    }
+
+    // Inversion
+    for (int i = 0; i < inversion && i < chord_len; ++i)
+        midi_out[i] += 12;
+
+    // sort
+    for (int n = chord_len; n > 1; --n) 
+    {
+        for (int i = 0; i < n - 1; ++i) 
+        {
+            if (midi_out[i] > midi_out[i + 1]) 
+            {
+                uint8_t t = midi_out[i];
+                midi_out[i] = midi_out[i + 1];
+                midi_out[i + 1] = t;
             }
         }
     }
-    
-    // Chord name (simple, memory efficient)
-    strncpy(chord_name, scale->scale[(degree-1)%SCALE_LEN], name_len-1);
-    chord_name[name_len-1] = 0;
-    if (extensions >= 3) {
-        int i3 = (midi_out[1] - midi_out[0] + 120) % 12;
-        int i5 = (midi_out[2] - midi_out[0] + 120) % 12;
 
-        //Initial type
-        if (i3 == 4 && i5 == 7) {} // Major
+    const char* root_name = get_note_name(root, is_flat);
+    const char* deg_name = deg_name(chord_type);
+    const char* ext_name = interval_name_from_semitones(chord_intervals[chord_type][extensions-1]);
 
-        else if (i3 == 3 && i5 == 7) 
-            strncat(chord_name, "m", name_len-strlen(chord_name)-1);
-        else if (i3 == 3 && i5 == 6) 
-            strncat(chord_name, "dim", name_len-strlen(chord_name)-1);
-        else if (i3 == 4 && i5 == 8) 
-            strncat(chord_name, "aug", name_len-strlen(chord_name)-1);
-        else 
-            strncat(chord_name, "?", name_len-strlen(chord_name)-1);
+    chord_name[0] = '\0';
 
-        // 7th
-        if (extensions >= 4) {
-            int i7 = (midi_out[3] - midi_out[0] + 120) % 12;
-            
-            if (i7 == 10) 
-                strncat(chord_name, "7", name_len-strlen(chord_name)-1);
-            else if (i7 == 11) 
-                strncat(chord_name, "maj7", name_len-strlen(chord_name)-1);
-            else 
-                strncat(chord_name, "?7", name_len-strlen(chord_name)-1);
-        }
-        // 9th
-        if (extensions >= 5) {
-            int i9 = (midi_out[4] - midi_out[0] + 120) % 12;
+    strncat(chord_name, root_name, CHORD_NAME_LEN - strlen(chord_name) - 1);
+    strncat(chord_name, deg_name, CHORD_NAME_LEN - strlen(chord_name) - 1);
 
-            if (i9 == 14) 
-                strncat(chord_name, "9", name_len-strlen(chord_name)-1);
-            else if (i9 == 13) 
-                strncat(chord_name, "b9", name_len-strlen(chord_name)-1);
-            else if (i9 == 15) 
-                strncat(chord_name, "#9", name_len-strlen(chord_name)-1);
-            else 
-                strncat(chord_name, "?9", name_len-strlen(chord_name)-1);
-        }
+    if(extensions > 3)
+    {
+        strncat(chord_name, ext_name, CHORD_NAME_LEN - strlen(chord_name) - 1);
     }
 }
 
-int main() {
-    const char* key = "Eb";
-    int octave = 4; // Eb4
-    int degree = 4;     // Ab
-    int extensions = 5; // 9th chord
-    int inversion = 1;  // first inversion
-
-    int midi[MAX_CHORD];
-    char chord_name[24];
-    build_chord(key, octave, degree, extensions, inversion, midi, chord_name, sizeof(chord_name));
-
-    if (strcmp(chord_name, "Unknown key") == 0) {
-        printf("Key not found.\n");
-        return 1;
-    }
-
-    printf("MIDI notes: ");
-    for (int i = 0; i < extensions; ++i) printf("%d ", midi[i]);
-    printf("\nChord name: %s\n", chord_name);
-    return 0;
-}
+#endif
