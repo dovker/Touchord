@@ -19,7 +19,7 @@ Touchord is an open source chord-generating synthesizer featuring a touch bar in
   - Cherry MX style mechanical switches.
   - 6 control buttons.
   - 7 chord keys sized 3u, equipped with 3u plate-mounted stabilizers for enhanced stability and feel.
-  - Touch bar: [Trill Bar by Bella](https://bella-lua.com/trill-bar) ([GitHub](https://github.com/bela-platform/trill)) providing multi-touch and pressure sensing.
+  - Touch bar: [Trill Bar by Bella](https://bela.io/products/trill/) ([GitHub](https://github.com/bela-platform/trill)) providing multi-touch and pressure sensing.
   - Display: Standard 0.96" 128x64 OLED screen (commonly SSD1306 controller).
 
 - **Enclosure:**
@@ -67,5 +67,5 @@ Touchord aims to empower players with a unique blend of tactile key control and 
 
 ---
 
-*Find the Trill Bar by Bella:* [bella-lua.com/trill-bar](https://bella-lua.com/trill-bar)  
+*Find the Trill Bar by Bella:* [https://bela.io/products/trill/](https://bela.io/products/trill/) 
 *Trill Bar GitHub repository:* [github.com/bela-platform/trill](https://github.com/bela-platform/trill)  
