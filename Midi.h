@@ -9,4 +9,6 @@ void send_midi_note(uint8_t status, uint8_t note, uint8_t velocity);
 
 void send_poly_aftertouch(uint8_t note, uint8_t pressure);
 
+void send_midi_chord(uint8_t status, uint8_t* notes, uint8_t length, uint8_t velocity);
+
 #endif

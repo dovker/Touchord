@@ -36,17 +36,20 @@ typedef struct
 
 typedef struct 
 {
-    Scale key;
+    Scale key[3];
+    int current_key;
     int octave;
     int extension_count;
+    int inversion;
     int velocity;
     
     TouchordMode mode;
     int octave_count;
     int aftertouch;
 
-    uint8_t current_chord[MAX_CHORD];
-    uint8_t current_length;
+    uint8_t chord[MAX_CHORD];
+    char chord_name[CHORD_NAME_LEN];
 } TouchordData;
+
 
 #endif

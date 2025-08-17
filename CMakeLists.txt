@@ -35,18 +35,19 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(Touchord Touchord.c Midi.c usb_descriptors.c)
+add_executable(Touchord Touchord.c Midi.c usb_descriptors.c ssd1306.c)
 
 pico_set_program_name(Touchord "Touchord")
 pico_set_program_version(Touchord "0.1")
 
 # Modify the below lines to enable/disable output over UART/USB
-pico_enable_stdio_uart(Touchord 1)
-pico_enable_stdio_usb(Touchord 0)
+pico_enable_stdio_uart(Touchord 0)
+pico_enable_stdio_usb(Touchord 1)
 
 # Add the standard library to the build
 target_link_libraries(Touchord
         pico_stdlib
+        pico_multicore
         tinyusb_device
         tinyusb_board)
 
@@ -59,6 +60,7 @@ target_include_directories(Touchord PRIVATE
 target_link_libraries(Touchord 
         hardware_spi
         hardware_i2c
+        
         )
 
 pico_add_extra_outputs(Touchord)

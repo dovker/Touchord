@@ -45,6 +45,24 @@
         "tusb.h": "c",
         "stdlib.h": "c",
         "stdio.h": "c",
-        "board.h": "c"
+        "board.h": "c",
+        "types.h": "c",
+        "note.h": "c",
+        "defines.h": "c",
+        "sstream": "c",
+        "regex": "c",
+        "random": "cpp",
+        "array": "cpp",
+        "string_view": "cpp",
+        "cstdlib": "c",
+        "compare": "cpp",
+        "string": "cpp",
+        "ranges": "cpp",
+        "span": "cpp",
+        "charconv": "cpp",
+        "bitset": "cpp",
+        "format": "cpp",
+        "initializer_list": "cpp",
+        "valarray": "cpp"
     }
 }

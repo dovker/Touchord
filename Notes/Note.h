@@ -14,6 +14,9 @@ static const char* flat_names[12] = {
     "C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"
 };
 
+static const uint8_t major_scale_intervals[SCALE_LEN] = { 0, 2, 4, 5, 7, 9, 11 };
+static const uint8_t minor_scale_intervals[SCALE_LEN] = { 0, 2, 3, 5, 7, 8, 10 };
+
 static const ChordDegree major_scale[SCALE_LEN] = 
 {
     CHORD_MAJOR, CHORD_MINOR, CHORD_MINOR, CHORD_MAJOR, CHORD_DOMINANT, CHORD_MINOR, CHORD_DIM
@@ -21,15 +24,16 @@ static const ChordDegree major_scale[SCALE_LEN] =
 
 static const ChordDegree minor_scale[SCALE_LEN] = 
 {
-    CHORD_MINOR, CHORD_DIM, CHORD_MAJOR, CHORD_MINOR, CHORD_DOMINANT, CHORD_MAJOR, CHORD_MAJOR
+    CHORD_MINOR, CHORD_DIM, CHORD_MAJOR, CHORD_MINOR, CHORD_MINOR, CHORD_MAJOR, CHORD_MAJOR
 };
 
-static const uint8_t chord_intervals[7][6] = 
+static const uint8_t chord_intervals[8][6] = 
 {
+    {0, 0, 0, 0,  0,  0},
     {0, 4, 7, 11, 14, 18}, // Major
     {0, 3, 7, 10, 14, 17}, // Minor
     {0, 4, 7, 10, 14, 17}, // Dominant
-    {0, 3, 6, 9, 14, 17}, // Dim
+    {0, 3, 6, 10, 14, 17}, // Dim
     {0, 4, 8, 0, 0, 0}, // Aug
     {0, 2, 7, 0, 0, 0}, // Sus2
     {0, 5, 7, 0, 0, 0}  // Sus4
@@ -96,7 +100,15 @@ static void build_chord(
     uint8_t* midi_out, char* chord_name) 
 {
     bool is_flat;
-    uint8_t root = note_name_to_midi(key.root, octave, &is_flat) + degree;
+    uint8_t root = 0;
+    if(!strcmp(key.quality, "maj"))
+    {
+        root = note_name_to_midi(key.root, octave, &is_flat) + major_scale_intervals[degree];
+    }
+    else if(!strcmp(key.quality, "min"))
+    {
+        root = note_name_to_midi(key.root, octave, &is_flat) + minor_scale_intervals[degree];
+    }
 
     if((chord_type == CHORD_AUG || chord_type == CHORD_SUS2 || chord_type == CHORD_SUS4) && extensions > 3)
     {
@@ -105,11 +117,14 @@ static void build_chord(
 
     if(chord_type == CHORD_DEFAULT)
     {
-        // switch (key.quality)
-        // {
-        //     case "maj": chord_type = major_scale[degree];
-        //     case "min": chord_type = minor_scale[degree];
-        // }
+        if(!strcmp(key.quality, "maj"))
+        {
+            chord_type = major_scale[degree];
+        }
+        else if(!strcmp(key.quality, "min"))
+        {
+            chord_type = minor_scale[degree];
+        }
     }
 
     for (int i = 0; i < extensions; i++)
