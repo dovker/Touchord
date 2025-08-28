@@ -53,6 +53,8 @@ typedef struct
     uint8_t chord[MAX_CHORD];
     char chord_name[CHORD_NAME_LEN];
     ChordDegree degree;
+
+    uint8_t prev_extension;
 } TouchordData;
 
 

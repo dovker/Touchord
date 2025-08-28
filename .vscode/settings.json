@@ -64,6 +64,7 @@
         "format": "cpp",
         "initializer_list": "cpp",
         "valarray": "cpp",
-        "algorithm": "cpp"
+        "algorithm": "cpp",
+        "bootrom.h": "c"
     }
 }

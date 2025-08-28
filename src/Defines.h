@@ -31,6 +31,10 @@
 #define SCALE_LEN 7
 #define MAX_CHORD 6
 #define CHORD_NAME_LEN 16
+#define DEFAULT_OCTAVE 4
 #define DEFAULT_EXTENSIONS 3
+#define DEFAULT_VELOCITY 100
+#define DEFAULT_INVERSION 0
+
 
 #endif

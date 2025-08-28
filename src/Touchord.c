@@ -3,6 +3,8 @@
 #include "pico/stdlib.h"
 #include "pico/binary_info.h"
 #include "pico/multicore.h"
+#include "pico/bootrom.h"
+
 #include "Defines.h"
 #include "Types.h"
 #include "Helper.h"
@@ -20,12 +22,16 @@
 TouchordData appData = 
 {
     {{"C", "min"}, {"E", "min"}, {"D", "maj"}}, 0,
-    4, 6, 0, 100, 
+    DEFAULT_OCTAVE, DEFAULT_EXTENSIONS, DEFAULT_INVERSION, DEFAULT_VELOCITY, 
     TOUCHORD_COMPOSE, 1, 0,
-    {0, 0, 0, 0, 0, 0}, {'\0'}, CHORD_DEFAULT
+    {0, 0, 0, 0, 0, 0}, {'\0'}, CHORD_DEFAULT,
+    DEFAULT_EXTENSIONS
 };
 
-
+ssd1306_t disp;
+TrillBar bar;
+bool running = true;
+bool trigger_bootsel = false;
 
 void led_blinking_task(void);
 
@@ -34,15 +40,18 @@ bool button_states[NUM_BUTTONS];
 bool control_states[NUM_CONTROLS];
 int last_button;
 
-
 void poll_buttons()
 {
-    for (int i = 3; i < NUM_CONTROLS; i++)
+    for (int i = 0; i < NUM_CONTROLS; i++)
     {   
         bool curr_state = gpio_get(i + CONTROL_0);
-        if(!control_states[i] && curr_state)
+        if(!control_states[i] && curr_state && i >2)
         {
             appData.current_key = i-3;
+        }
+        if(!control_states[0] && !control_states[1] && !control_states[2])
+        {
+            trigger_bootsel = true;
         }
         control_states[i] = curr_state;
     }
@@ -52,17 +61,19 @@ void poll_buttons()
         bool curr_state = gpio_get(i + BUTTON_0);
         if(button_states[i] && !curr_state)
         {
-            send_midi_chord(NOTE_OFF, appData.chord, appData.extension_count, appData.velocity);
+            send_midi_chord(NOTE_OFF, appData.chord, appData.prev_extension, appData.velocity);
             build_chord(appData.key[appData.current_key], appData.octave, i, appData.degree, 
                         appData.extension_count, appData.inversion, appData.chord, appData.chord_name);
             send_midi_chord(NOTE_ON, appData.chord, appData.extension_count, appData.velocity);
             last_button = i;
             button_states[i] = curr_state;
+
+            appData.prev_extension = appData.extension_count;
             break;
         }
         else if(!button_states[i] && curr_state && last_button == i)
         {
-            send_midi_chord(NOTE_OFF, appData.chord, appData.extension_count, appData.velocity);
+            send_midi_chord(NOTE_OFF, appData.chord, appData.prev_extension, appData.velocity);
             build_chord(appData.key[appData.current_key], appData.octave, 0, CHORD_DEFAULT, 
                         0, appData.inversion, appData.chord, appData.chord_name);
             appData.chord_name[0] = '\0';
@@ -107,7 +118,6 @@ void init_i2c()
 void io_task()
 {
     init_i2c();
-    ssd1306_t disp;
     disp.external_vcc = false;
     ssd1306_init(&disp, 128, 64, 0x3C, i2c0);
     ssd1306_clear(&disp);
@@ -115,14 +125,24 @@ void io_task()
     gpio_init(LED_PIN);
     gpio_set_dir(LED_PIN, GPIO_OUT);
 
-    TrillBar bar = trill_init(i2c0, TRILL_ADDR);
+    bar = trill_init(i2c0, TRILL_ADDR);
     trill_set_noise_threshold(&bar, 255);
 
     uint8_t count = 0;
     Touch touches[TRILL_MAX_TOUCHES];
 
-    while(true)
+    while(running)
     {
+        if(trigger_bootsel)
+        {
+            running = false;
+            ssd1306_clear(&disp);
+            ssd1306_draw_string(&disp, 10, 24, 2, "Firm Mode");
+            ssd1306_show(&disp);
+            rom_reset_usb_boot(0, 0);
+            break;
+        }
+
         ssd1306_clear(&disp);
 
         ssd1306_draw_string(&disp, 8, 24, 2, appData.chord_name);
@@ -154,11 +174,11 @@ void io_task()
                     appData.degree = CHORD_DEFAULT;
                     break;
                 case 3: 
-                    appData.extension_count = 4; 
+                    appData.extension_count = 3; 
                     appData.degree = CHORD_PARALLEL;
                     break;
                 case 4: 
-                    appData.extension_count = DEFAULT_EXTENSIONS; 
+                    appData.extension_count = 4; 
                     appData.degree = CHORD_PARALLEL;
                     break;
             }
@@ -200,7 +220,7 @@ void io_task()
 int main()
 {
     board_init();
-    sleep_ms(2000);
+    //sleep_ms(500);
     tud_init(0);
 
     init_buttons();
