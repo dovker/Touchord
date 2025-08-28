@@ -35,7 +35,7 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(Touchord Touchord.c Midi.c usb_descriptors.c ssd1306.c)
+add_executable(Touchord src/Touchord.c src/Midi.c src/usb_descriptors.c src/ssd1306.c)
 
 pico_set_program_name(Touchord "Touchord")
 pico_set_program_version(Touchord "0.1")
@@ -53,7 +53,7 @@ target_link_libraries(Touchord
 
 # Add the standard include files to the build
 target_include_directories(Touchord PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}
+        ${CMAKE_CURRENT_LIST_DIR}/src
 )
 
 # Add any user requested libraries

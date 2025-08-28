@@ -13,7 +13,9 @@ typedef enum
 {
     TOUCHORD_COMPOSE = 0,
     TOUCHORD_PERFORM,
-    TOUCHORD_STRUM
+    TOUCHORD_STRUM,
+    TOUCHORD_ACCORDION,
+    TOUCHORD_SETTINGS
 } TouchordMode;
 
 typedef enum 
@@ -25,7 +27,8 @@ typedef enum
     CHORD_DIM,
     CHORD_AUG,
     CHORD_SUS2,
-    CHORD_SUS4
+    CHORD_SUS4,
+    CHORD_PARALLEL
 } ChordDegree;
 
 typedef struct 
@@ -49,6 +52,7 @@ typedef struct
 
     uint8_t chord[MAX_CHORD];
     char chord_name[CHORD_NAME_LEN];
+    ChordDegree degree;
 } TouchordData;
 
 

@@ -5,6 +5,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <math.h>
 #include "hardware/i2c.h"
 
 #define TRILL_REG_COMMAND 0x00
@@ -28,8 +29,8 @@
 
 #define TRILL_MAX_TOUCHES 5
 #define TRILL_MAX_POS 3200
-#define TRILL_MAX_SIZE 60000
-#define TRILL_SIZE_THRESHOLD 1000
+#define TRILL_MAX_SIZE 0xFFFF
+#define TRILL_SIZE_THRESHOLD 5000
 #define TRILL_SLEEP 25
 
 typedef struct {
@@ -42,6 +43,7 @@ typedef struct {
     uint8_t address;
     uint8_t mode;
     uint16_t data[TRILL_MAX_TOUCHES * 2];
+    uint16_t raw_data[26];
 } TrillBar;
 
 static void trill_writeto(TrillBar* bar, uint8_t* data, uint8_t len)
@@ -106,6 +108,9 @@ static void trill_read(TrillBar* bar)
     if(bar->mode == TRILL_MODE_CENTROID)
     {
         trill_readfrom_mem16(bar, TRILL_REG_DATA, bar->data, 2 * TRILL_MAX_TOUCHES);
+    } else if (bar->mode == TRILL_MODE_DIFF)
+    {
+        trill_readfrom_mem16(bar, TRILL_REG_DATA, bar->raw_data, 26);
     }
 }
 
@@ -163,17 +168,62 @@ static void trill_touches(TrillBar* bar, Touch touches[TRILL_MAX_TOUCHES], uint8
     *count = c;
 }
 
+static float trill_calculate_touch(TrillBar* bar)
+{
+    float sum = 0.0f, weighted_sum = 0.0f;
+    for (size_t i = 0; i < 26; ++i) {
+        float norm_intensity = (float)bar->raw_data[i] / (float)TRILL_MAX_SIZE;
+        if(norm_intensity > 0.05)
+        {
+            weighted_sum += i * norm_intensity;
+            sum += norm_intensity;
+        }
+    }
+    return sum > 0.0f ? (weighted_sum / sum)/25.0f : -1.0f;
+}
+
+static float trill_calculate_size(TrillBar* bar, float pos)
+{
+    if(pos >= 0.0f)
+    {
+        float sum = 0.0f, var_sum = 0.0f;
+        for (size_t i = 0; i < 26; ++i) {
+            float norm_intensity = (float)bar->raw_data[i] / (float)TRILL_MAX_SIZE;
+            if(norm_intensity > 0.05)
+            {
+                float it_pos = (float)i / 25.0f;
+
+                var_sum += (it_pos - pos) * (it_pos - pos) * norm_intensity;
+                sum += norm_intensity;
+            }
+        }
+        return sum > 0.0f ? sqrtf(var_sum / sum)*10.0f : 0.0f;
+    }      
+    return 0.0f;
+}
+
+static int segments(float pos, int segments)
+{    
+    if(pos < 0)
+    {
+        return -1;
+    }
+    else
+    {
+        return (int)(pos * segments);
+    }
+}
+
 static TrillBar trill_init(i2c_inst_t *i2c_i, uint8_t address)
 {
     TrillBar bar;
     bar.i2c_i = i2c_i;
     bar.address = address;
-    bar.mode = TRILL_MODE_CENTROID;
-    // uint16_t data[TRILL_MAX_TOUCHES * 2] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
-    // memcpy(bar.data, data, 10);
+    bar.mode = TRILL_MODE_DIFF;
 
     trill_set_mode(&bar, bar.mode);
     trill_set_scan_settings(&bar, 0, 12);
+    trill_set_noise_threshold(&bar, 255);
     trill_update_baseline(&bar);
 
     return bar;

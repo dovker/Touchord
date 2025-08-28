@@ -59,6 +59,8 @@ extern "C" {
 #define CFG_TUD_MIDI            1 
 #define CFG_TUD_VENDOR          0
 
+#define CFG_TUH_CABLE_MAX 6
+
 // MIDI FIFO size of TX and RX
 #define CFG_TUD_MIDI_RX_BUFSIZE   (TUD_OPT_HIGH_SPEED ? 512 : 64)
 #define CFG_TUD_MIDI_TX_BUFSIZE   (TUD_OPT_HIGH_SPEED ? 512 : 64)

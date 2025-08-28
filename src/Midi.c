@@ -10,13 +10,12 @@ void send_midi_chord(uint8_t status, uint8_t* notes, uint8_t length, uint8_t vel
 }
 
 void send_midi_note(uint8_t status, uint8_t note, uint8_t velocity) {
-    uint8_t packet[4] = {
-        0x09,
+    uint8_t packet[3] = {
         status | (MIDI_CHANNEL & 0x0F),
         note,
         velocity
     };
-    tud_midi_stream_write(0, packet, 4);
+    tud_midi_stream_write(0, packet, 3);
 }
 
 void send_poly_aftertouch(uint8_t note, uint8_t pressure) {

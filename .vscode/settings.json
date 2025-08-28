@@ -63,6 +63,7 @@
         "bitset": "cpp",
         "format": "cpp",
         "initializer_list": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "algorithm": "cpp"
     }
 }

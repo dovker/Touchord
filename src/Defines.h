@@ -31,5 +31,6 @@
 #define SCALE_LEN 7
 #define MAX_CHORD 6
 #define CHORD_NAME_LEN 16
+#define DEFAULT_EXTENSIONS 3
 
 #endif

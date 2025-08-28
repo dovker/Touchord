@@ -40,7 +40,7 @@ static const uint8_t chord_intervals[8][6] =
 };
 
 const char* interval_name_from_semitones(int semitones) {
-    switch (semitones % 24) 
+    switch (semitones % 12) 
     {
         case 1:  return "b9";
         case 2:  return "9";
@@ -100,19 +100,24 @@ static void build_chord(
     uint8_t* midi_out, char* chord_name) 
 {
     bool is_flat;
-    uint8_t root = 0;
+    uint8_t root = note_name_to_midi(key.root, octave, &is_flat);
     if(!strcmp(key.quality, "maj"))
     {
-        root = note_name_to_midi(key.root, octave, &is_flat) + major_scale_intervals[degree];
+        if(chord_type != CHORD_PARALLEL)
+            root += major_scale_intervals[degree];
+        else root += minor_scale_intervals[degree];
+
     }
     else if(!strcmp(key.quality, "min"))
     {
-        root = note_name_to_midi(key.root, octave, &is_flat) + minor_scale_intervals[degree];
+        if(chord_type != CHORD_PARALLEL)
+            root += minor_scale_intervals[degree];
+        else root += major_scale_intervals[degree];
     }
 
-    if((chord_type == CHORD_AUG || chord_type == CHORD_SUS2 || chord_type == CHORD_SUS4) && extensions > 3)
+    if((chord_type == CHORD_AUG || chord_type == CHORD_SUS2 || chord_type == CHORD_SUS4))
     {
-        //error
+        extensions = 3;
     }
 
     if(chord_type == CHORD_DEFAULT)
@@ -122,6 +127,16 @@ static void build_chord(
             chord_type = major_scale[degree];
         }
         else if(!strcmp(key.quality, "min"))
+        {
+            chord_type = minor_scale[degree];
+        }
+    } else if (chord_type == CHORD_PARALLEL)
+    {
+        if(!strcmp(key.quality, "min"))
+        {
+            chord_type = major_scale[degree];
+        }
+        else if(!strcmp(key.quality, "maj"))
         {
             chord_type = minor_scale[degree];
         }

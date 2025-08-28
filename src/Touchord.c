@@ -20,9 +20,9 @@
 TouchordData appData = 
 {
     {{"C", "min"}, {"E", "min"}, {"D", "maj"}}, 0,
-    4, 4, 0, 100, 
+    4, 6, 0, 100, 
     TOUCHORD_COMPOSE, 1, 0,
-    {0, 0, 0, 0, 0, 0}, {'\0'}
+    {0, 0, 0, 0, 0, 0}, {'\0'}, CHORD_DEFAULT
 };
 
 
@@ -32,6 +32,8 @@ void led_blinking_task(void);
 static uint32_t blink_interval_ms = BLINK_NOT_MOUNTED;
 bool button_states[NUM_BUTTONS];
 bool control_states[NUM_CONTROLS];
+int last_button;
+
 
 void poll_buttons()
 {
@@ -51,11 +53,14 @@ void poll_buttons()
         if(button_states[i] && !curr_state)
         {
             send_midi_chord(NOTE_OFF, appData.chord, appData.extension_count, appData.velocity);
-            build_chord(appData.key[appData.current_key], appData.octave, i, CHORD_DEFAULT, 
+            build_chord(appData.key[appData.current_key], appData.octave, i, appData.degree, 
                         appData.extension_count, appData.inversion, appData.chord, appData.chord_name);
             send_midi_chord(NOTE_ON, appData.chord, appData.extension_count, appData.velocity);
+            last_button = i;
+            button_states[i] = curr_state;
+            break;
         }
-        else if(!button_states[i] && curr_state)
+        else if(!button_states[i] && curr_state && last_button == i)
         {
             send_midi_chord(NOTE_OFF, appData.chord, appData.extension_count, appData.velocity);
             build_chord(appData.key[appData.current_key], appData.octave, 0, CHORD_DEFAULT, 
@@ -89,7 +94,7 @@ void init_buttons()
 
 void init_i2c()
 {
-    i2c_init(i2c0, 100000);
+    i2c_init(i2c0, 400000);
 
     gpio_set_function(PIN_SDA, GPIO_FUNC_I2C);
     gpio_set_function(PIN_SCL, GPIO_FUNC_I2C);
@@ -125,16 +130,67 @@ void io_task()
         ssd1306_draw_string(&disp, 0, 0, 1, "Key: ");
         ssd1306_draw_string(&disp, 26, 0, 1, appData.key[appData.current_key].root);
         ssd1306_draw_string(&disp, 38, 0, 1, appData.key[appData.current_key].quality);
+        // sprintf(buf, "Ext: %d", appData.exttension_count);
+        // ssd1306_draw_string(&disp, 0, (i+1) * 10, 1, buf);
+        
         
         trill_read(&bar);
-        Touch touches[TRILL_MAX_TOUCHES];
         
-        trill_touches(&bar, touches, &count);
-        for(int i = 0; i < count; i++)
+        int seg = segments(trill_calculate_touch(&bar), 5);
+        if(seg >= 0)
         {
-            char buf[32];
-            sprintf(buf, "%f, %f", touches[i].pos, touches[i].size);
-            ssd1306_draw_string(&disp, 0, (i+1) * 10, 1, buf);
+            switch (seg)
+            {
+                case 0: 
+                    appData.extension_count = 6; 
+                    appData.degree = CHORD_DEFAULT;
+                    break;
+                case 1: 
+                    appData.extension_count = 5; 
+                    appData.degree = CHORD_DEFAULT;
+                    break;
+                case 2: 
+                    appData.extension_count = 4; 
+                    appData.degree = CHORD_DEFAULT;
+                    break;
+                case 3: 
+                    appData.extension_count = 4; 
+                    appData.degree = CHORD_PARALLEL;
+                    break;
+                case 4: 
+                    appData.extension_count = DEFAULT_EXTENSIONS; 
+                    appData.degree = CHORD_PARALLEL;
+                    break;
+            }
+        }
+        else
+        {
+            appData.extension_count = DEFAULT_EXTENSIONS;
+            appData.degree = CHORD_DEFAULT;
+        }
+
+        char buf[32];
+        sprintf(buf, "Seg: %f", seg);
+        ssd1306_draw_string(&disp, 0, 54, 1, buf);
+
+        float pos = trill_calculate_touch(&bar);
+        sprintf(buf, "Pos: %f", pos);
+        ssd1306_draw_string(&disp, 64, 0, 1, buf);
+
+        float size = trill_calculate_size(&bar, pos);
+        sprintf(buf, "Siz: %f", size);
+        ssd1306_draw_string(&disp, 64, 9, 1, buf);
+
+
+        // for(int i = 0; i < count; i++)
+        // {
+        //     char buf[32];
+        //     sprintf(buf, "%f, %f", touches[i].pos, touches[i].size);
+        //     ssd1306_draw_string(&disp, 0, (i+1) * 10, 1, buf);
+        // }
+        for (int i =0; i < 26; i++)
+        {
+            ssd1306_draw_square(&disp, 0, i*2, bar.raw_data[i]*128/0xFFFF, 2);
         }
         
         ssd1306_show(&disp);
