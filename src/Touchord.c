@@ -83,7 +83,7 @@ void poll_buttons()
     sleep_ms(10);
 }
 
-void init_buttons()
+void init_GPIO()
 {
     for (int i = 0; i < NUM_CONTROLS; i++)
     {
@@ -101,6 +101,8 @@ void init_buttons()
         gpio_pull_up(i + BUTTON_0);
         button_states[i] = true;
     }
+    gpio_init(LED_PIN);
+    gpio_set_dir(LED_PIN, GPIO_OUT);
 }
 
 void init_i2c()
@@ -116,21 +118,15 @@ void init_i2c()
 
 
 void io_task()
-{
-    init_i2c();
-    disp.external_vcc = false;
-    ssd1306_init(&disp, 128, 64, 0x3C, i2c0);
-    ssd1306_clear(&disp);
-    
-    gpio_init(LED_PIN);
-    gpio_set_dir(LED_PIN, GPIO_OUT);
-
+{   
     bar = trill_init(i2c0, TRILL_ADDR);
     trill_set_noise_threshold(&bar, 255);
-
+    
     uint8_t count = 0;
     Touch touches[TRILL_MAX_TOUCHES];
-
+    
+    sleep_ms(1000);
+    ssd1306_clear(&disp);
     while(running)
     {
         if(trigger_bootsel)
@@ -174,11 +170,11 @@ void io_task()
                     appData.degree = CHORD_DEFAULT;
                     break;
                 case 3: 
-                    appData.extension_count = 3; 
+                    appData.extension_count = 4; 
                     appData.degree = CHORD_PARALLEL;
                     break;
                 case 4: 
-                    appData.extension_count = 4; 
+                    appData.extension_count = 3; 
                     appData.degree = CHORD_PARALLEL;
                     break;
             }
@@ -220,10 +216,19 @@ void io_task()
 int main()
 {
     board_init();
-    //sleep_ms(500);
+    sleep_ms(500);
     tud_init(0);
+    sleep_ms(500);
 
-    init_buttons();
+    init_GPIO();
+    init_i2c();
+
+    disp.external_vcc = false;
+    ssd1306_init(&disp, 128, 64, 0x3C, i2c0);
+    ssd1306_clear(&disp);
+    ssd1306_draw_string(&disp, 10, 24, 2, "Touchord");
+    ssd1306_show(&disp);
+
     multicore_launch_core1(io_task);
 
     while (true) {
