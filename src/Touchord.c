@@ -8,79 +8,81 @@
 #include "Defines.h"
 #include "Types.h"
 #include "Helper.h"
-
-#include "Notes/Note.h"
-#include "Midi.h"
+#include "Globals.h"
 
 #include "bsp/board.h"
 #include "tusb.h"
 
-#include "Trill.h"
-#include "ssd1306.h"
+#include "Modes/Compose.h"
+#include "Modes/Perform.h"
+#include "Modes/Strum.h"
+#include "Modes/Settings.h"
 
-
-TouchordData appData = 
-{
-    {{"C", "min"}, {"E", "min"}, {"D", "maj"}}, 0,
-    DEFAULT_OCTAVE, DEFAULT_EXTENSIONS, DEFAULT_INVERSION, DEFAULT_VELOCITY, 
-    TOUCHORD_COMPOSE, 1, 0,
-    {0, 0, 0, 0, 0, 0}, {'\0'}, CHORD_DEFAULT,
-    DEFAULT_EXTENSIONS
-};
-
-ssd1306_t disp;
-TrillBar bar;
-bool running = true;
-bool trigger_bootsel = false;
 
 void led_blinking_task(void);
-
 static uint32_t blink_interval_ms = BLINK_NOT_MOUNTED;
-bool button_states[NUM_BUTTONS];
-bool control_states[NUM_CONTROLS];
-int last_button;
+
 
 void poll_buttons()
 {
     for (int i = 0; i < NUM_CONTROLS; i++)
     {   
         bool curr_state = gpio_get(i + CONTROL_0);
-        if(!control_states[i] && curr_state && i >2)
+        if(tc_control_states[i] && !curr_state)
         {
-            appData.current_key = i-3;
+            tc_button_down(i);
+
+            //appData.current_key = i-3;
         }
-        if(!control_states[0] && !control_states[1] && !control_states[2])
+        else if(!tc_control_states[i] && curr_state)
         {
-            trigger_bootsel = true;
+            tc_button_up(i);
         }
-        control_states[i] = curr_state;
+        if(!tc_control_states[0] && !tc_control_states[1] && !tc_control_states[2])
+        {
+            tc_trigger_bootsel = true;
+        }
+        tc_control_states[i] = curr_state;
     }
 
-    for (int i = 0; i < NUM_BUTTONS; i++)
+    for (int i = 0; i < NUM_KEYS; i++)
     {   
-        bool curr_state = gpio_get(i + BUTTON_0);
-        if(button_states[i] && !curr_state)
+        bool curr_state = gpio_get(i + KEY_0);
+        if(tc_key_states[i] && !curr_state)
         {
-            send_midi_chord(NOTE_OFF, appData.chord, appData.prev_extension, appData.velocity);
-            build_chord(appData.key[appData.current_key], appData.octave, i, appData.degree, 
-                        appData.extension_count, appData.inversion, appData.chord, appData.chord_name);
-            send_midi_chord(NOTE_ON, appData.chord, appData.extension_count, appData.velocity);
-            last_button = i;
-            button_states[i] = curr_state;
+            tc_key_down(i);
 
-            appData.prev_extension = appData.extension_count;
+            tc_last_key = i;
+            tc_key_states[i] = curr_state;
             break;
         }
-        else if(!button_states[i] && curr_state && last_button == i)
+        else if(!tc_key_states[i] && curr_state && tc_last_key == i)
         {
-            send_midi_chord(NOTE_OFF, appData.chord, appData.prev_extension, appData.velocity);
-            build_chord(appData.key[appData.current_key], appData.octave, 0, CHORD_DEFAULT, 
-                        0, appData.inversion, appData.chord, appData.chord_name);
-            appData.chord_name[0] = '\0';
+            tc_key_up(i);
         }
-        button_states[i] = curr_state;
+        tc_key_states[i] = curr_state;
     }
     sleep_ms(10);
+}
+
+
+
+void poll_trill_bar(TrillBar* bar)
+{
+    trill_read(bar);
+    float touchPos = trill_calculate_touch(bar);
+    float touchSize = trill_calculate_size(bar, touchPos);
+
+    bool curr_state = touchPos >= 0.0f;
+    if(curr_state)
+    {
+        tc_trill_down(touchPos, touchSize);
+    }
+    else if(tc_touch_state)
+    {
+        tc_trill_up();
+    }
+    tc_touch_state = curr_state;
 }
 
 void init_GPIO()
@@ -91,15 +93,15 @@ void init_GPIO()
         gpio_set_dir(i + CONTROL_0, GPIO_IN);
         gpio_pull_up(i + CONTROL_0);
 
-        control_states[i] = true;
+        tc_control_states[i] = true;
       }
 
-    for (int i = 0; i < NUM_BUTTONS; i++)
+    for (int i = 0; i < NUM_KEYS; i++)
     {
-        gpio_init(i + BUTTON_0);
-        gpio_set_dir(i + BUTTON_0, GPIO_IN);
-        gpio_pull_up(i + BUTTON_0);
-        button_states[i] = true;
+        gpio_init(i + KEY_0);
+        gpio_set_dir(i + KEY_0, GPIO_IN);
+        gpio_pull_up(i + KEY_0);
+        tc_key_states[i] = true;
     }
     gpio_init(LED_PIN);
     gpio_set_dir(LED_PIN, GPIO_OUT);
@@ -116,100 +118,94 @@ void init_i2c()
     gpio_pull_up(PIN_SCL);
 }
 
+TouchordMode prevMode = TOUCHORD_COMPOSE;
+
+void select_mode(TouchordMode mode)
+{
+    switch(prevMode)
+    {
+        case TOUCHORD_COMPOSE: compose_end(); break;
+        case TOUCHORD_STRUM: strum_end(); break;
+        case TOUCHORD_PERFORM: perform_end(); break;
+        case TOUCHORD_SETTINGS: settings_end(); break;
+    }
+    switch(mode)
+    {
+        case TOUCHORD_COMPOSE:
+        {
+            compose_start();
+        }
+        break;
+        case TOUCHORD_STRUM:
+        {
+            strum_start();
+        }
+        break;
+        case TOUCHORD_PERFORM:
+        {
+            perform_start();
+        }
+        break;
+        case TOUCHORD_SETTINGS:
+        {
+            // compose_start();
+            // tc_state->draw        = compose_draw;
+            // tc_state->update      = compose_update;
+            // tc_state->key_down    = compose_key_down;
+            // tc_state->key_up      = compose_key_up;
+            // tc_state->button_down = compose_button_down;
+            // tc_state->button_up   = compose_button_up;
+            // tc_state->trill_down  = compose_trill_down;
+            // tc_state->trill_up    = compose_trill_up;
+        }
+        break;
+    }
+}
+
 
 void io_task()
 {   
-    bar = trill_init(i2c0, TRILL_ADDR);
-    trill_set_noise_threshold(&bar, 255);
-    
-    uint8_t count = 0;
-    Touch touches[TRILL_MAX_TOUCHES];
     
     sleep_ms(1000);
-    ssd1306_clear(&disp);
-    while(running)
+    ssd1306_clear(&tc_disp);
+    while(tc_running)
     {
-        if(trigger_bootsel)
+        if(tc_trigger_bootsel)
         {
-            running = false;
-            ssd1306_clear(&disp);
-            ssd1306_draw_string(&disp, 10, 24, 2, "Firm Mode");
-            ssd1306_show(&disp);
+            tc_running = false;
+            ssd1306_clear(&tc_disp);
+            ssd1306_draw_string(&tc_disp, 10, 24, 2, "Firm Mode");
+            ssd1306_show(&tc_disp);
             rom_reset_usb_boot(0, 0);
             break;
         }
 
-        ssd1306_clear(&disp);
-
-        ssd1306_draw_string(&disp, 8, 24, 2, appData.chord_name);
-
-        ssd1306_draw_string(&disp, 0, 0, 1, "Key: ");
-        ssd1306_draw_string(&disp, 26, 0, 1, appData.key[appData.current_key].root);
-        ssd1306_draw_string(&disp, 38, 0, 1, appData.key[appData.current_key].quality);
-        // sprintf(buf, "Ext: %d", appData.exttension_count);
-        // ssd1306_draw_string(&disp, 0, (i+1) * 10, 1, buf);
-        
-        
-        trill_read(&bar);
-        
-        int seg = segments(trill_calculate_touch(&bar), 5);
-        if(seg >= 0)
-        {
-            switch (seg)
-            {
-                case 0: 
-                    appData.extension_count = 6; 
-                    appData.degree = CHORD_DEFAULT;
-                    break;
-                case 1: 
-                    appData.extension_count = 5; 
-                    appData.degree = CHORD_DEFAULT;
-                    break;
-                case 2: 
-                    appData.extension_count = 4; 
-                    appData.degree = CHORD_DEFAULT;
-                    break;
-                case 3: 
-                    appData.extension_count = 4; 
-                    appData.degree = CHORD_PARALLEL;
-                    break;
-                case 4: 
-                    appData.extension_count = 3; 
-                    appData.degree = CHORD_PARALLEL;
-                    break;
-            }
-        }
-        else
-        {
-            appData.extension_count = DEFAULT_EXTENSIONS;
-            appData.degree = CHORD_DEFAULT;
+        if(tc_app.mode != prevMode) 
+        { 
+            select_mode(tc_app.mode);
+            prevMode = tc_app.mode;
         }
 
-        char buf[32];
-        sprintf(buf, "Seg: %f", seg);
-        ssd1306_draw_string(&disp, 0, 54, 1, buf);
-
-        float pos = trill_calculate_touch(&bar);
-        sprintf(buf, "Pos: %f", pos);
-        ssd1306_draw_string(&disp, 64, 0, 1, buf);
-
-        float size = trill_calculate_size(&bar, pos);
-        sprintf(buf, "Siz: %f", size);
-        ssd1306_draw_string(&disp, 64, 9, 1, buf);
-
-
-        // for(int i = 0; i < count; i++)
-        // {
-        //     char buf[32];
-        //     sprintf(buf, "%f, %f", touches[i].pos, touches[i].size);
-        //     ssd1306_draw_string(&disp, 0, (i+1) * 10, 1, buf);
-        // }
-        for (int i =0; i < 26; i++)
-        {
-            ssd1306_draw_square(&disp, 0, i*2, bar.raw_data[i]*128/0xFFFF, 2);
-        }
+        poll_trill_bar(&tc_bar);
         
-        ssd1306_show(&disp);
+        ssd1306_clear(&tc_disp);
+
+        tc_draw();
+        tc_update();
+
+        uint32_t len = strlen(tc_app.chord_name);
+        uint8_t text_w = len * 6 - 1;
+        ssd1306_draw_string(&tc_disp, 64 - text_w, 24, 2, tc_app.chord_name);
+
+        uint8_t rootLen = strlen(tc_app.key[tc_app.current_key].root);
+        uint8_t qualLen = strlen(tc_app.key[tc_app.current_key].quality);
+        text_w = (5 + rootLen + qualLen) * 6 - 1;
+        uint8_t pos = 64-text_w/2;
+        ssd1306_draw_string(&tc_disp, pos, 0, 1, "Key:");
+        ssd1306_draw_string(&tc_disp, pos + 25, 0, 1, tc_app.key[tc_app.current_key].root);
+        ssd1306_draw_string(&tc_disp, pos + 25 + rootLen * 6, 0, 1, tc_app.key[tc_app.current_key].quality);
+        
+        ssd1306_show(&tc_disp);
     }
 }
 
@@ -223,11 +219,16 @@ int main()
     init_GPIO();
     init_i2c();
 
-    disp.external_vcc = false;
-    ssd1306_init(&disp, 128, 64, 0x3C, i2c0);
-    ssd1306_clear(&disp);
-    ssd1306_draw_string(&disp, 10, 24, 2, "Touchord");
-    ssd1306_show(&disp);
+    tc_bar = trill_init(i2c0, TRILL_ADDR);
+    trill_set_noise_threshold(&tc_bar, 255);
+
+    tc_disp.external_vcc = false;
+    ssd1306_init(&tc_disp, 128, 64, 0x3C, i2c0);
+    ssd1306_clear(&tc_disp);
+    ssd1306_draw_string(&tc_disp, 10, 24, 2, "Touchord");
+    ssd1306_show(&tc_disp);
+    
+    compose_start();
 
     multicore_launch_core1(io_task);
 

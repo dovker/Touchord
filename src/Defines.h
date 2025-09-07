@@ -5,6 +5,10 @@
 #define NOTE_OFF 0x80
 #define MIDI_CHANNEL 0
 #define MIDI_NOTE 60
+#define MIDI_CUTOFF 74
+#define MIDI_MOD 1
+
+#define DEFAULT_CUTOFF 100
 
 #define PIN_SDA  16      
 #define PIN_SCL  17     
@@ -19,22 +23,23 @@
 #define CONTROL_4 5
 #define CONTROL_5 6
 #define NUM_CONTROLS 6
-#define BUTTON_0 7
-#define BUTTON_1 8
-#define BUTTON_2 9
-#define BUTTON_3 10
-#define BUTTON_4 11
-#define BUTTON_5 12
-#define BUTTON_6 13
-#define NUM_BUTTONS 7
+#define KEY_0 7
+#define KEY_1 8
+#define KEY_2 9
+#define KEY_3 10
+#define KEY_4 11
+#define KEY_5 12
+#define KEY_6 13
+#define NUM_KEYS 7
 
 #define SCALE_LEN 7
 #define MAX_CHORD 6
 #define CHORD_NAME_LEN 16
 #define DEFAULT_OCTAVE 4
-#define DEFAULT_EXTENSIONS 3
+#define DEFAULT_EXTENSIONS 4
 #define DEFAULT_VELOCITY 100
 #define DEFAULT_INVERSION 0
+#define DEFAULT_OCTAVE_COUNT 3
 
 
 #endif

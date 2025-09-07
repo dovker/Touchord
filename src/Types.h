@@ -1,6 +1,7 @@
 #ifndef TOUCHORD_TYPES_H
 #define TOUCHORD_TYPES_H
 
+#include <stdint.h>
 #include "Defines.h"
 
 enum  {
@@ -14,7 +15,6 @@ typedef enum
     TOUCHORD_COMPOSE = 0,
     TOUCHORD_PERFORM,
     TOUCHORD_STRUM,
-    TOUCHORD_ACCORDION,
     TOUCHORD_SETTINGS
 } TouchordMode;
 
@@ -48,14 +48,15 @@ typedef struct
     
     TouchordMode mode;
     int octave_count;
-    int aftertouch;
+    int cutoff;
 
     uint8_t chord[MAX_CHORD];
     char chord_name[CHORD_NAME_LEN];
     ChordDegree degree;
 
     uint8_t prev_extension;
-} TouchordData;
+    uint8_t channel;
+} TouchordSettings;
 
 
 #endif

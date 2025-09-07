@@ -5,8 +5,10 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <string.h>
 #include <math.h>
 #include "hardware/i2c.h"
+#include "Helper.h"
 
 #define TRILL_REG_COMMAND 0x00
 #define TRILL_REG_DATA 0x04
