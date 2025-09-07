@@ -56,7 +56,7 @@ void strum_button_down(uint8_t button)
 {
     switch(button)
     {
-        case 0: tc_app.mode = TOUCHORD_COMPOSE; break;
+        case 0: tc_app.mode = TOUCHORD_OMNI; break;
         case 1: 
         if(tc_app.octave > 1) tc_app.octave--;
         break;

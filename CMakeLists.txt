@@ -36,7 +36,7 @@ pico_sdk_init()
 # Add executable. Default name is the project name, version 0.1
 
 add_executable(Touchord src/Touchord.c src/Midi.c src/Globals.c src/Fonts.c src/usb_descriptors.c src/ssd1306.c
-                        src/Modes/Compose.c src/Modes/Strum.c src/Modes/Settings.c src/Modes/Perform.c
+                        src/Modes/Compose.c src/Modes/Strum.c src/Modes/Settings.c src/Modes/Perform.c src/Modes/Omni.c
                         src/Notes/Note.c)
 
 pico_set_program_name(Touchord "Touchord")

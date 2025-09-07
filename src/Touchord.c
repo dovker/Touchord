@@ -16,6 +16,7 @@
 #include "Modes/Compose.h"
 #include "Modes/Perform.h"
 #include "Modes/Strum.h"
+#include "Modes/Omni.h"
 #include "Modes/Settings.h"
 
 
@@ -127,6 +128,7 @@ void select_mode(TouchordMode mode)
         case TOUCHORD_COMPOSE: compose_end(); break;
         case TOUCHORD_STRUM: strum_end(); break;
         case TOUCHORD_PERFORM: perform_end(); break;
+        case TOUCHORD_OMNI: omni_end(); break;
         case TOUCHORD_SETTINGS: settings_end(); break;
     }
     switch(mode)
@@ -144,6 +146,11 @@ void select_mode(TouchordMode mode)
         case TOUCHORD_PERFORM:
         {
             perform_start();
+        }
+        break;
+        case TOUCHORD_OMNI:
+        {
+            omni_start();
         }
         break;
         case TOUCHORD_SETTINGS:

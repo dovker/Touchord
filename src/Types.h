@@ -15,6 +15,7 @@ typedef enum
     TOUCHORD_COMPOSE = 0,
     TOUCHORD_PERFORM,
     TOUCHORD_STRUM,
+    TOUCHORD_OMNI,
     TOUCHORD_SETTINGS
 } TouchordMode;
 
