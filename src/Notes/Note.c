@@ -44,9 +44,9 @@ uint8_t note_name_to_midi(const char* note, int octave, bool* flat) {
         11, 1, 3, 4, 6, 8, 10, 5, 0
     };
     for (int i = 0; i < 21; ++i) {
-        if (strcasecmp(note, names[i]) == 0) {
-            return values[i] + 12 * (octave + 1);
+        if (strcmp(note, names[i]) == 0) {
             *flat = i > 11;
+            return values[i] + 12 * (octave + 1);
         }
     }
     return -1;
@@ -61,6 +61,10 @@ void build_chord(
     Scale key, int octave, int degree, ChordDegree chord_type, int extensions, int inversion,
     uint8_t* midi_out, char* chord_name) 
 {
+    for(int i = 0; i < MAX_CHORD; i++)
+    {
+        midi_out[i] = 0;
+    }
     bool is_flat;
     uint8_t root = note_name_to_midi(key.root, octave, &is_flat);
     if(!strcmp(key.quality, "maj"))
@@ -73,8 +77,13 @@ void build_chord(
     else if(!strcmp(key.quality, "min"))
     {
         if(chord_type != CHORD_PARALLEL)
+        {
             root += minor_scale_intervals[degree];
-        else root += major_scale_intervals[degree];
+            if(!strcmp(key.root, "C"))
+                is_flat = true;
+        }
+        else 
+            root += major_scale_intervals[degree];
     }
 
     if((chord_type == CHORD_AUG || chord_type == CHORD_SUS2 || chord_type == CHORD_SUS4))

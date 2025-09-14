@@ -13,8 +13,9 @@ Touchord addresses these problems. Components are common, 3D‑printable, or man
 ## Features
 
 - **Three Operating Modes:**
-  - **Strum Mode:** An omni-chord style play mode mimicking the strumming of an omnichord.
-  - **Composer Mode:** Allows adjustment of chord qualities directly via the touch bar for deep chord customization.
+  - **Strum Mode:** Harp style playing for plucked synths.
+  - **Omni Mode:** An omni-chord style play mode mimicking the strumming of an omnichord.
+  - **Composer Mode:** Allows adjustment of chord qualities directly via the touch bar for chord customization.
   - **Perform Mode:** Uses the touch bar’s pressure sensitivity for expressive live performances.
 
 - **Chord Layout:**
@@ -36,15 +37,15 @@ Touchord addresses these problems. Components are common, 3D‑printable, or man
 
 - **Connectivity:**
   - USB Type-C MIDI support.
-  - TRS MIDI support implementing the two most popular MIDI modes:
+  - TRS MIDI support (User switchable in software):
     - **TRS Type A (Standard MIDI TRS)**
     - **TRS Type B (Roland TRS MIDI)**
 
 ## Project Stage
 
 - Enclosure design and manufacturing are finished.
-- PCB prototype is already made and tested, and a final board with more expandable and flexible features is at the last stage of production.
-- Software is at a prototype stage. All the backend features are done, UI and UX remain.
+- PCB is at the last stage of production. Final version need to be manufactured and tested.
+- Software implements all major functions, TRS and USB MIDI, Playing modes. User settings and presets left.
 
 - ### Next steps?
 

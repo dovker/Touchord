@@ -18,11 +18,9 @@ void strum_start()
     tc_trill_up    = &strum_trill_up;
 }
 
-uint8_t playing = 0;
 void strum_end()
 {
     send_midi_note(tc_app.channel, NOTE_OFF, lastNote, tc_app.velocity);
-    send_midi_note(tc_app.channel, NOTE_OFF, playing, tc_app.velocity);
 }
 
 void strum_draw()
@@ -40,16 +38,13 @@ void strum_update()
 
 void strum_key_down(uint8_t key)
 {
-    send_midi_note(tc_app.channel, NOTE_OFF, playing, tc_app.velocity);
     build_chord(tc_app.key[tc_app.current_key], tc_app.octave, key, tc_app.degree, 
                 tc_app.extension_count, tc_app.inversion, tc_app.chord, tc_app.chord_name);
-    playing = tc_app.chord[0] - 12;
-    send_midi_note(tc_app.channel, NOTE_ON, playing, tc_app.velocity);
 }
 
 void strum_key_up(uint8_t key)
 {
-    send_midi_note(tc_app.channel, NOTE_OFF, playing, tc_app.velocity);
+
 }
 
 void strum_button_down(uint8_t button)
@@ -58,10 +53,20 @@ void strum_button_down(uint8_t button)
     {
         case 0: tc_app.mode = TOUCHORD_OMNI; break;
         case 1: 
-        if(tc_app.octave > 1) tc_app.octave--;
+            if(tc_app.octave > 1) 
+            {
+            tc_app.octave--;
+            build_chord(tc_app.key[tc_app.current_key], tc_app.octave, tc_last_key, tc_app.degree, 
+                tc_app.extension_count, tc_app.inversion, tc_app.chord, tc_app.chord_name);
+            }
         break;
         case 2: 
-        if(tc_app.octave < 7) tc_app.octave++;
+            if(tc_app.octave < 7) 
+            {
+                tc_app.octave++;
+                build_chord(tc_app.key[tc_app.current_key], tc_app.octave, tc_last_key, tc_app.degree, 
+                tc_app.extension_count, tc_app.inversion, tc_app.chord, tc_app.chord_name);
+            }
         break;
         case 3: tc_app.current_key = 0; break;
         case 4: tc_app.current_key = 1; break;

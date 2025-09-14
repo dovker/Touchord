@@ -29,9 +29,9 @@ void omni_end()
 
 void omni_draw()
 {
-    ssd1306_draw_line(&tc_disp, 0, 60, 40, 60);
-    ssd1306_draw_string_with_font(&tc_disp, 45, 54, 2, font_3x6, "Omni>");
-    ssd1306_draw_line(&tc_disp, 88, 60, 128, 60);
+    ssd1306_draw_line(&tc_disp, 0, 60, 44, 60);
+    ssd1306_draw_string_with_font(&tc_disp, 50, 54, 2, font_3x6, "Omni");
+    ssd1306_draw_line(&tc_disp, 84, 60, 128, 60);
 }
 
 void omni_update()

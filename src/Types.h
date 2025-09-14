@@ -32,6 +32,12 @@ typedef enum
     CHORD_PARALLEL
 } ChordDegree;
 
+typedef enum 
+{
+    MIDI_TRS_A = 0,
+    MIDI_TRS_B
+} MidiType;
+
 typedef struct 
 {
     const char* root;

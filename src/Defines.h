@@ -8,6 +8,11 @@
 #define MIDI_CUTOFF 74
 #define MIDI_MOD 1
 
+#define MIDI_PIN_IN_1 18
+#define MIDI_PIN_IN_2 19
+#define MIDI_PIN_DAT 20
+#define MIDI_BAUD_RATE 31250
+
 #define DEFAULT_CUTOFF 100
 
 #define PIN_SDA  16      

@@ -9,6 +9,7 @@
 #include "Types.h"
 #include "Helper.h"
 #include "Globals.h"
+#include "Midi.h"
 
 #include "bsp/board.h"
 #include "tusb.h"
@@ -39,7 +40,7 @@ void poll_buttons()
         {
             tc_button_up(i);
         }
-        if(!tc_control_states[0] && !tc_control_states[1] && !tc_control_states[2])
+        if(!tc_control_states[0] && !tc_control_states[2] && !tc_control_states[4])
         {
             tc_trigger_bootsel = true;
         }
@@ -225,6 +226,7 @@ int main()
 
     init_GPIO();
     init_i2c();
+    setup_midi_trs();
 
     tc_bar = trill_init(i2c0, TRILL_ADDR);
     trill_set_noise_threshold(&tc_bar, 255);
