@@ -76,8 +76,7 @@ Users will be able to select from three versions:
 
 ![Render Side View](./img/TC%20Render%202.png)  
 ![Render Front View](./img/TC%20Render%201.png)  
-![PCB Example](./img/PCB.png)  
-*(Images show design renders from different angles and PCB layout)*
+*(Images show design renders from different angles)*
 
 ---
 
