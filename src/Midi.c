@@ -19,10 +19,10 @@ void switch_midi_trs(MidiType type)
 }
 void setup_midi_trs()
 {
-    gpio_init(MIDI_PIN_TYPE_A);
-    gpio_init(MIDI_PIN_TYPE_B);
-    gpio_set_dir(MIDI_PIN_TYPE_A, GPIO_OUT);
-    gpio_set_dir(MIDI_PIN_TYPE_B, GPIO_OUT);
+    gpio_init(MIDI_PIN_IN_1);
+    gpio_init(MIDI_PIN_IN_2);
+    gpio_set_dir(MIDI_PIN_IN_1, GPIO_OUT);
+    gpio_set_dir(MIDI_PIN_IN_2, GPIO_OUT);
 
     switch_midi_trs(MIDI_TRS_A);
 

@@ -20,6 +20,7 @@ void perform_end()
     send_midi_cc(tc_app.channel, MIDI_CUTOFF, DEFAULT_CUTOFF);
     if(tc_touch_state)
         send_midi_cc(tc_app.channel, MIDI_MOD, 0);
+    tc_app.chord_name[0] = '\0';
 }
 
 void perform_draw()

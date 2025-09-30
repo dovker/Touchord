@@ -65,6 +65,10 @@
         "initializer_list": "cpp",
         "valarray": "cpp",
         "algorithm": "cpp",
-        "bootrom.h": "c"
+        "bootrom.h": "c",
+        "files.h": "c",
+        "perform.h": "c",
+        "globals.h": "c",
+        "i2c.h": "c"
     }
 }

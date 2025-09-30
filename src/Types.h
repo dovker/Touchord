@@ -38,14 +38,33 @@ typedef enum
     MIDI_TRS_B
 } MidiType;
 
+typedef enum 
+{
+    SCALE_NULL = 0,
+    SCALE_MAJOR,
+    SCALE_MINOR,
+    SCALE_DORIAN,
+    SCALE_PHRYGIAN,
+    SCALE_LYDIAN,
+    SCALE_MIXOLYDIAN,
+    SCALE_LOCRIAN,
+    SCALE_CUSTOM0,
+    SCALE_CUSTOM1,
+    SCALE_CUSTOM2,
+    SCALE_CUSTOM3
+} ScaleType;
+
+#define SCALE_COUNT 12
+
 typedef struct 
 {
-    const char* root;
-    const char* quality;
+    char root[4];
+    ScaleType quality;
 } Scale;
 
 typedef struct 
 {
+    uint32_t magic;
     Scale key[3];
     int current_key;
     int octave;

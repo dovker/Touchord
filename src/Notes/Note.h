@@ -14,17 +14,40 @@ static const char* flat_names[12] = {
     "C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"
 };
 
-static const uint8_t major_scale_intervals[SCALE_LEN] = { 0, 2, 4, 5, 7, 9, 11 };
-static const uint8_t minor_scale_intervals[SCALE_LEN] = { 0, 2, 3, 5, 7, 8, 10 };
-
-static const ChordDegree major_scale[SCALE_LEN] = 
+static uint8_t scale_intervals[SCALE_COUNT][SCALE_LEN] = 
 {
-    CHORD_MAJOR, CHORD_MINOR, CHORD_MINOR, CHORD_MAJOR, CHORD_DOMINANT, CHORD_MINOR, CHORD_DIM
+    { 0, 0, 0, 0, 0, 0, 0 }, // Null
+    { 0, 2, 4, 5, 7, 9, 11 }, // Maj
+    { 0, 2, 3, 5, 7, 8, 10 }, // Min
+    { 0, 2, 3, 5, 7, 9, 10 }, // Dorian
+    { 0, 1, 3, 5, 7, 8, 10 }, // Phrygian
+    { 0, 2, 4, 6, 7, 9, 11 }, // Lydian
+    { 0, 2, 4, 5, 7, 9, 10 }, // Mixolydian
+    { 0, 1, 3, 5, 6, 8, 10 }, // Locrian
+    { 0, 1, 2, 3, 4, 5, 6 }, // C0
+    { 0, 1, 2, 3, 4, 5, 6 }, // C1
+    { 0, 1, 2, 3, 4, 5, 6 }, // C2
+    { 0, 1, 2, 3, 4, 5, 6 }, // C3
 };
 
-static const ChordDegree minor_scale[SCALE_LEN] = 
+static ChordDegree scale_chords[SCALE_COUNT][SCALE_LEN] = 
 {
-    CHORD_MINOR, CHORD_DIM, CHORD_MAJOR, CHORD_MINOR, CHORD_MINOR, CHORD_MAJOR, CHORD_MAJOR
+    {CHORD_MAJOR, CHORD_MAJOR, CHORD_MAJOR, CHORD_MAJOR, CHORD_MAJOR, CHORD_MAJOR, CHORD_MAJOR},
+    {CHORD_MAJOR, CHORD_MINOR, CHORD_MINOR, CHORD_MAJOR, CHORD_DOMINANT, CHORD_MINOR, CHORD_DIM}, // Maj
+    {CHORD_MINOR, CHORD_DIM, CHORD_MAJOR, CHORD_MINOR, CHORD_MINOR, CHORD_MAJOR, CHORD_MAJOR}, // Min
+    {CHORD_MINOR, CHORD_MINOR, CHORD_MAJOR, CHORD_DOMINANT, CHORD_MINOR, CHORD_DIM, CHORD_MAJOR}, // Dorian
+    {CHORD_MINOR, CHORD_MAJOR, CHORD_DOMINANT, CHORD_MINOR, CHORD_DIM, CHORD_MAJOR, CHORD_MINOR}, // Phrygian
+    {CHORD_MAJOR, CHORD_DOMINANT, CHORD_MINOR, CHORD_DIM, CHORD_MAJOR, CHORD_MINOR, CHORD_MINOR}, // Lydian
+    {CHORD_DOMINANT, CHORD_MINOR, CHORD_DIM, CHORD_MAJOR, CHORD_MINOR, CHORD_MINOR, CHORD_MAJOR}, // Mixolydian
+    {CHORD_DIM, CHORD_MAJOR, CHORD_MINOR, CHORD_MINOR, CHORD_MAJOR, CHORD_DOMINANT, CHORD_MINOR}, // Locrian
+    {CHORD_MAJOR, CHORD_MAJOR, CHORD_MAJOR, CHORD_MAJOR, CHORD_MAJOR, CHORD_MAJOR, CHORD_MAJOR}, // Custom0
+    {CHORD_MINOR, CHORD_MINOR, CHORD_MINOR, CHORD_MINOR, CHORD_MINOR, CHORD_MINOR, CHORD_MINOR},
+    {CHORD_DOMINANT, CHORD_DOMINANT, CHORD_DOMINANT, CHORD_DOMINANT, CHORD_DOMINANT, CHORD_DOMINANT, CHORD_DOMINANT},
+    {CHORD_DIM, CHORD_DIM, CHORD_DIM, CHORD_DIM, CHORD_DIM, CHORD_DIM, CHORD_DIM}, // Custom3
+};
+
+static const char* scale_names[SCALE_COUNT] = {
+    "NULL", "Major", "Minor", "Dorian", "Phrygian", "Lydian", "Mixolydian", "Locrian", "Custom 0", "Custom 1", "Custom 2", "Custom 3"
 };
 
 static const uint8_t chord_intervals[8][6] = 

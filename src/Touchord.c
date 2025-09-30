@@ -10,6 +10,8 @@
 #include "Helper.h"
 #include "Globals.h"
 #include "Midi.h"
+#include "Parser.h"
+#include "Notes/Note.h"
 
 #include "bsp/board.h"
 #include "tusb.h"
@@ -20,21 +22,47 @@
 #include "Modes/Omni.h"
 #include "Modes/Settings.h"
 
-
 void led_blinking_task(void);
 static uint32_t blink_interval_ms = BLINK_NOT_MOUNTED;
 
-
 void poll_buttons()
 {
+    uint64_t now = to_ms_since_boot(get_absolute_time());
+    if(now - tc_time_last_control > DEFAULT_DOUBLE_CLICK_MS)
+    {
+        if(tc_last_control_clicks >= 2)
+        {
+            tc_button_double_down(tc_last_control);
+        }
+        else if (tc_last_control_clicks == 1)
+        {
+            tc_button_down(tc_last_control);
+        }
+        tc_last_control_clicks = 0;
+    }
+
     for (int i = 0; i < NUM_CONTROLS; i++)
     {   
         bool curr_state = gpio_get(i + CONTROL_0);
         if(tc_control_states[i] && !curr_state)
         {
-            tc_button_down(i);
-
-            //appData.current_key = i-3;
+            if(tc_control_double_click[i]) // Improves responsiveness for other buttons
+            {
+                if(now - tc_time_last_control < DEFAULT_DOUBLE_CLICK_MS && tc_last_control == i)
+                {
+                    tc_last_control_clicks++;
+                } 
+                else
+                {
+                    tc_time_last_control = now;
+                    tc_last_control_clicks = 1;
+                }
+            }
+            else
+            {
+                tc_button_down(i);
+            }
+            tc_last_control = i;
         }
         else if(!tc_control_states[i] && curr_state)
         {
@@ -173,7 +201,6 @@ void select_mode(TouchordMode mode)
 
 void io_task()
 {   
-    
     sleep_ms(1000);
     ssd1306_clear(&tc_disp);
     while(tc_running)
@@ -206,19 +233,45 @@ void io_task()
         ssd1306_draw_string(&tc_disp, 64 - text_w, 24, 2, tc_app.chord_name);
 
         uint8_t rootLen = strlen(tc_app.key[tc_app.current_key].root);
-        uint8_t qualLen = strlen(tc_app.key[tc_app.current_key].quality);
-        text_w = (5 + rootLen + qualLen) * 6 - 1;
+        uint8_t qualLen = strlen(scale_names[tc_app.key[tc_app.current_key].quality]);
+        text_w = (6 + rootLen + qualLen) * 6 - 1;
         uint8_t pos = 64-text_w/2;
         ssd1306_draw_string(&tc_disp, pos, 0, 1, "Key:");
         ssd1306_draw_string(&tc_disp, pos + 25, 0, 1, tc_app.key[tc_app.current_key].root);
-        ssd1306_draw_string(&tc_disp, pos + 25 + rootLen * 6, 0, 1, tc_app.key[tc_app.current_key].quality);
+        ssd1306_draw_string(&tc_disp, pos + 30 + rootLen * 6, 0, 1, scale_names[tc_app.key[tc_app.current_key].quality]);
         
         ssd1306_show(&tc_disp);
     }
 }
 
+void serial_poll(void)
+{
+    static char buf[1024];
+    static int  idx = 0;
+
+    while (tud_cdc_available())
+    {
+        char c = (char)tud_cdc_read_char();
+
+        if (c == '\r' || c == '\n')
+        {
+            if (idx)          
+            {
+                buf[idx] = '\0';
+                process_cmd(buf);
+                idx = 0;
+            }
+        }
+        else if (idx < (int)sizeof buf - 1)
+        {
+            buf[idx++] = c;
+        }
+    }
+}
+
 int main()
 {
+    //stdio_init_all();
     board_init();
     sleep_ms(500);
     tud_init(0);
@@ -248,6 +301,8 @@ int main()
             poll_buttons();
         }
         led_blinking_task();
+
+        serial_poll();
     }
 }
 

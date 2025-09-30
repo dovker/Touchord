@@ -14,6 +14,7 @@ void compose_start()
     tc_key_down = &compose_key_down;
     tc_key_up = &compose_key_up;
     tc_button_down = &compose_button_down;
+    tc_button_double_down = &compose_button_double_down;
     tc_button_up = &compose_button_up;
     tc_trill_down = &compose_trill_down;
     tc_trill_up = &compose_trill_up;
@@ -22,6 +23,7 @@ void compose_start()
 void compose_end()
 {
     send_midi_chord(tc_app.channel, NOTE_OFF, tc_app.chord, tc_app.prev_extension, tc_app.velocity);
+    tc_app.chord_name[0] = '\0';
 }
 
 void compose_draw()
@@ -84,6 +86,21 @@ void compose_button_down(uint8_t button)
     }
 }
 
+void compose_button_double_down(uint8_t button)
+{
+    switch(button)
+    {
+        case 0: tc_app.mode = TOUCHORD_PERFORM; break;
+        case 1: 
+        if(tc_app.octave > 0) tc_app.octave+=1;
+        break;
+        case 2: 
+        if(tc_app.octave < 7) tc_app.octave-=1;
+        break;
+        default: break;
+    }
+}
+
 void compose_button_up(uint8_t button)
 {
 
@@ -92,76 +109,79 @@ void compose_button_up(uint8_t button)
 int prev_seg = -1;
 void compose_trill_down(float pos, float size)
 {
-    uint8_t prev_ext_count = tc_app.extension_count;
-    int seg = segments(pos, 5);
-    if(compose_default)
+    if(tc_app.chord_name[0] != '\0')
     {
-        switch (seg)
+        uint8_t prev_ext_count = tc_app.extension_count;
+        int seg = segments(pos, 5);
+        if(compose_default)
         {
-            case 0: 
-                tc_app.extension_count = 6; 
-                tc_app.degree = CHORD_DEFAULT;
-                break;
-            case 1: 
-                tc_app.extension_count = 5; 
-                tc_app.degree = CHORD_DEFAULT;
-                break;
-            case 2: 
-                tc_app.extension_count = 4; 
-                tc_app.degree = CHORD_DEFAULT;
-                break;
-            case 3: 
-                tc_app.extension_count = 4; 
-                tc_app.degree = CHORD_PARALLEL;
-                break;
-            case 4: 
-                tc_app.extension_count = 3; 
-                tc_app.degree = CHORD_PARALLEL;
-                break;
-        }
-    }
-    else 
-    {
-        tc_app.extension_count = 3;
-        switch (seg)
-        {
-            case 0: 
-                tc_app.degree = CHORD_DOMINANT;
-                break;
-            case 1: 
-                tc_app.degree = CHORD_DIM;
-                break;
-            case 2: 
-                tc_app.degree = CHORD_AUG;
-                break;
-            case 3: 
-                tc_app.degree = CHORD_SUS2;
-                break;
-            case 4: 
-                tc_app.degree = CHORD_SUS4;
-                break;
-        }
-    }
-    if(tc_app.chord_name[0] != '\0' && prev_seg != seg)
-    {
-        uint8_t prev_chord[6];
-        memcpy(prev_chord, tc_app.chord, 6);
-        build_chord(tc_app.key[tc_app.current_key], tc_app.octave, compose_last_degree, tc_app.degree, 
-                    tc_app.extension_count, tc_app.inversion, tc_app.chord, tc_app.chord_name);
-
-        for(int i = 0; i < MAX_CHORD; i++)
-        {
-            if(tc_app.chord[i] != prev_chord[i])
+            switch (seg)
             {
-                if(prev_chord[i] != 0)
-                    send_midi_note(tc_app.channel, NOTE_OFF, prev_chord[i], tc_app.velocity);
-                if(tc_app.chord[i] != 0)
-                    send_midi_note(tc_app.channel, NOTE_ON, tc_app.chord[i], tc_app.velocity);
+                case 0: 
+                    tc_app.extension_count = 6; 
+                    tc_app.degree = CHORD_DEFAULT;
+                    break;
+                case 1: 
+                    tc_app.extension_count = 5; 
+                    tc_app.degree = CHORD_DEFAULT;
+                    break;
+                case 2: 
+                    tc_app.extension_count = 4; 
+                    tc_app.degree = CHORD_DEFAULT;
+                    break;
+                case 3: 
+                    tc_app.extension_count = 4; 
+                    tc_app.degree = CHORD_PARALLEL;
+                    break;
+                case 4: 
+                    tc_app.extension_count = 3; 
+                    tc_app.degree = CHORD_PARALLEL;
+                    break;
             }
         }
-        tc_app.prev_extension = tc_app.extension_count;
+        else 
+        {
+            tc_app.extension_count = 3;
+            switch (seg)
+            {
+                case 0: 
+                    tc_app.degree = CHORD_DOMINANT;
+                    break;
+                case 1: 
+                    tc_app.degree = CHORD_DIM;
+                    break;
+                case 2: 
+                    tc_app.degree = CHORD_AUG;
+                    break;
+                case 3: 
+                    tc_app.degree = CHORD_SUS2;
+                    break;
+                case 4: 
+                    tc_app.degree = CHORD_SUS4;
+                    break;
+            }
+        }
+        if(prev_seg != seg)
+        {
+            uint8_t prev_chord[6];
+            memcpy(prev_chord, tc_app.chord, 6);
+            build_chord(tc_app.key[tc_app.current_key], tc_app.octave, compose_last_degree, tc_app.degree, 
+                        tc_app.extension_count, tc_app.inversion, tc_app.chord, tc_app.chord_name);
+
+            for(int i = 0; i < MAX_CHORD; i++)
+            {
+                if(tc_app.chord[i] != prev_chord[i])
+                {
+                    if(prev_chord[i] != 0)
+                        send_midi_note(tc_app.channel, NOTE_OFF, prev_chord[i], tc_app.velocity);
+                    if(tc_app.chord[i] != 0)
+                        send_midi_note(tc_app.channel, NOTE_ON, tc_app.chord[i], tc_app.velocity);
+                }
+            }
+            tc_app.prev_extension = tc_app.extension_count;
+        }
+        prev_seg = seg;
     }
-    prev_seg = seg;
 }
 
 void compose_trill_up()

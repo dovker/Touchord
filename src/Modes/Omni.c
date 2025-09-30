@@ -13,6 +13,7 @@ void omni_start()
     tc_key_down    = &omni_key_down;
     tc_key_up      = &omni_key_up;
     tc_button_down = &omni_button_down;
+    tc_button_double_down = &omni_button_double_down;
     tc_button_up   = &omni_button_up;
     tc_trill_down  = &omni_trill_down;
     tc_trill_up    = &omni_trill_up;
@@ -25,6 +26,7 @@ void omni_end()
     send_midi_note(tc_app.channel, NOTE_OFF, omniLastNote, tc_app.velocity);
     send_midi_note(tc_app.channel, NOTE_OFF, playingRoot, tc_app.velocity);
     send_midi_note(tc_app.channel, NOTE_OFF, playingFifth, tc_app.velocity);
+    tc_app.chord_name[0] = '\0';
 }
 
 void omni_draw()
@@ -75,6 +77,24 @@ void omni_button_down(uint8_t button)
         case 3: tc_app.current_key = 0; break;
         case 4: tc_app.current_key = 1; break;
         case 5: tc_app.current_key = 2; break;
+    }
+}
+void omni_button_double_down(uint8_t button)
+{
+    switch(button)
+    {
+        case 1: 
+            if(tc_app.extension_count > 1) 
+            {
+                tc_app.extension_count--;
+            }
+        break;
+        case 2: 
+            if(tc_app.extension_count < 4) 
+            {
+                tc_app.extension_count++;
+            }
+        break;
     }
 }
 

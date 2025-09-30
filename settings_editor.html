@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>Touchord Config</title>
+<style>
+:root{
+  --bg:#0b0d10;
+  --panel:#12151a;
+  --panel-glass:rgba(18,21,26,0.6);
+  --text:#e7ecf3;
+  --muted:#a8b0bd;
+  --primary:#7aa2ff;
+  --primary-2:#5b86ff;
+  --accent:#7fffd4;
+  --ring:0 0 0 2px color-mix(in oklab, var(--primary) 40%, transparent);
+  --radius:14px;
+  --radius-sm:10px;
+  --gap:14px;
+  --shadow-1:0 6px 24px rgba(0,0,0,0.28);
+  --shadow-2:0 1px 0 rgba(255,255,255,0.03) inset, 0 8px 30px rgba(0,0,0,0.35);
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+
+body{
+  margin:0;
+  font:14.5px/1.45 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans","Liberation Sans",sans-serif;
+  color:var(--text);
+  background:
+    radial-gradient(1200px 800px at 10% -10%, #1a1f27 0%, transparent 60%),
+    radial-gradient(1000px 700px at 110% 0%, #132033 0%, transparent 60%),
+    radial-gradient(800px 800px at 30% 120%, #161b22 0%, transparent 60%),
+    var(--bg);
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+  padding:48px 20px;
+  background-attachment:fixed;
+}
+
+.app{
+  position:relative;
+  overflow:hidden;
+  border-radius:var(--radius);
+  background-clip:padding-box;
+}
+.app::before{
+  content:"";
+  position:absolute; inset:0;
+  backdrop-filter:blur(16px) saturate(120%);
+  -webkit-backdrop-filter:blur(16px) saturate(120%);
+  background:linear-gradient(180deg, color-mix(in oklab, var(--panel) 70%, #1b2330) 0%, var(--panel) 70%);
+  z-index:0;
+}
+.app > *{position:relative; z-index:1}
+
+h1{
+  margin:0 0 12px;
+  font-size:22px;
+  font-weight:650;
+  letter-spacing:.01em;
+  color:var(--text);
+}
+
+.section{
+  background:var(--panel-glass);
+  border:1px solid rgba(255,255,255,0.06);
+  border-radius:var(--radius-sm);
+  box-shadow:var(--shadow-2);
+  padding:18px;
+  margin:16px 0;
+  transition:transform .12s ease;
+}
+.section:hover{transform:translateY(-1px)}
+
+.legend{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin:-6px 0 12px;
+  color:var(--muted);
+  text-transform:uppercase;
+  letter-spacing:.14em;
+  font-size:12px;
+}
+
+.form-grid{
+  display:grid;
+  grid-template-columns:repeat(12,1fr);
+  gap:var(--gap);
+}
+@media (max-width:880px){.form-grid{grid-template-columns:repeat(6,1fr)}}
+@media (max-width:560px){.form-grid{grid-template-columns:repeat(4,1fr)}}
+
+.field{grid-column:span 6; display:flex; flex-direction:column; gap:6px}
+.field--sm{grid-column:span 3}
+.field--lg{grid-column:span 12}
+
+label{
+  color:var(--muted);
+  font-size:12.5px;
+  letter-spacing:.02em;
+}
+
+input,select,textarea{
+  width:100%;
+  appearance:none;
+  border:1px solid rgba(255,255,255,0.08);
+  background:linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+  color:var(--text);
+  border-radius:10px;
+  padding:10px 12px;
+  outline:none;
+  transition:border-color .15s ease, box-shadow .15s ease, background .2s ease, transform .05s ease;
+}
+input:hover,select:hover,textarea:hover{border-color:rgba(255,255,255,0.16)}
+input:focus,select:focus,textarea:focus{border-color:color-mix(in oklab, var(--primary) 55%, white 0%); box-shadow:var(--ring); transform:translateY(-1px)}
+
+select{
+  background-image:
+    linear-gradient(45deg, transparent 50%, rgba(255,255,255,0.6) 50%),
+    linear-gradient(135deg, rgba(255,255,255,0.6) 50%, transparent 50%),
+    linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+  background-position:calc(100% - 18px) 52%, calc(100% - 12px) 52%, 0 0;
+  background-size:6px 6px, 6px 6px, auto;
+  background-repeat:no-repeat;
+  padding-right:34px;
+}
+
+.keypair{display:grid; grid-template-columns:1fr 1fr; gap:var(--gap)}
+
+.buttons{display:flex; flex-wrap:wrap; gap:10px; margin-top:8px}
+
+button{
+  appearance:none;
+  border:0;
+  border-radius:12px;
+  padding:10px 14px;
+  font-weight:600;
+  letter-spacing:.02em;
+  color:white;
+  background:linear-gradient(180deg, var(--primary), var(--primary-2));
+  box-shadow:0 6px 18px color-mix(in oklab, var(--primary) 25%, transparent);
+  cursor:pointer;
+  transition:transform .06s ease, filter .15s ease, box-shadow .15s ease, opacity .15s ease;
+}
+button:hover{filter:brightness(1.06)}
+button:active{transform:translateY(1px)}
+button:disabled{opacity:.45; cursor:not-allowed; box-shadow:none}
+button.secondary{
+  background:linear-gradient(180deg, color-mix(in oklab, var(--text) 12%, transparent), transparent);
+  color:var(--text);
+  border:1px solid rgba(255,255,255,0.08);
+  box-shadow:none;
+}
+
+#log{
+  height:12rem;
+  width:100%;
+  background:rgba(0,0,0,0.35);
+  border:1px dashed rgba(255,255,255,0.12);
+  border-radius:10px;
+  font:12.5px/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  color:color-mix(in oklab, var(--text) 85%, #d6ffea);
+  padding:10px 12px;
+  white-space:pre-wrap;
+  word-wrap:break-word;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+  overflow-x:hidden;
+}
+
+.chk{display:inline-flex; align-items:center; gap:.6rem; user-select:none; cursor:pointer; color:var(--text)}
+.chk input{position:absolute; opacity:0; pointer-events:none; width:0; height:0}
+.chk .box{
+  width:18px; height:18px;
+  border-radius:6px;
+  background:linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+  border:1px solid rgba(255,255,255,0.14);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.05);
+  display:inline-grid; place-items:center;
+  transition:background .15s ease, border-color .15s ease, box-shadow .15s ease, transform .06s ease;
+}
+.chk .box::after{
+  content:"";
+  width:11px; height:11px;
+  border-radius:3px;
+  transform:scale(0.6);
+  background:linear-gradient(180deg, var(--primary), var(--primary-2));
+  box-shadow:0 4px 10px color-mix(in oklab, var(--primary) 30%, transparent);
+  opacity:0;
+  transition:transform .12s ease, opacity .12s ease;
+}
+.chk:hover .box{border-color:rgba(255,255,255,0.22)}
+.chk input:focus-visible + .box{box-shadow:0 0 0 2px color-mix(in oklab, var(--primary) 40%, transparent)}
+.chk input:checked + .box::after{opacity:1; transform:scale(1)}
+.chk input:disabled + .box{opacity:.45; cursor:not-allowed}
+.chk .label{font-size:13.5px; color:var(--muted)}
+</style>
+
+<div class="app">
+  <h1>Touchord Settings Editor</h1>
+
+  <section class="section">
+    <div class="legend">Core parameters</div>
+    <div class="form-grid">
+      <div class="field field--sm"><label for="octave">Octave</label><input id="octave" type="number"></div>
+      <div class="field field--sm"><label for="extension_count">Extension Cnt</label><input id="extension_count" type="number"></div>
+      <div class="field field--sm"><label for="inversion">Inversion</label><input id="inversion" type="number"></div>
+      <div class="field field--sm"><label for="velocity">Velocity</label><input id="velocity" type="number"></div>
+      <div class="field field--sm"><label for="mode">Mode</label><select id="mode"></select></div>
+      <div class="field field--sm"><label for="octave_count">Octave Count</label><input id="octave_count" type="number"></div>
+      <div class="field field--sm"><label for="cutoff">Cut-off</label><input id="cutoff" type="number"></div>
+      <div class="field field--sm"><label for="channel">Channel</label><input id="channel" type="number"></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="legend">Keys</div>
+    <div class="form-grid">
+      <div class="field field--lg">
+        <div class="keypair">
+          <input id="k0_root" placeholder="Root">
+          <select id="k0_quality"></select>
+        </div>
+      </div>
+      <div class="field field--lg">
+        <div class="keypair">
+          <input id="k1_root" placeholder="Root">
+          <select id="k1_quality"></select>
+        </div>
+      </div>
+      <div class="field field--lg">
+        <div class="keypair">
+          <input id="k2_root" placeholder="Root">
+          <select id="k2_quality"></select>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="buttons">
+    <button id="btnConnect">Connect</button>
+    <button id="btnRead" disabled>Read</button>
+    <button id="btnWrite" disabled>Write</button>
+    <button id="btnSave" class="secondary">Save</button>
+    <button id="btnLoad" class="secondary">Load</button>
+    <label class="chk" for="chkRead">
+      <input id="chkRead" type="checkbox">
+      <span class="box" aria-hidden="true"></span>
+      <span class="label">Live read</span>
+    </label>
+  </div>
+
+  <section class="section">
+    <div class="legend">Log</div>
+    <pre id="log"></pre>
+  </section>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const val = id => $(id).value;
+const log = m => { const el=$("log"); el.textContent += m + "\n"; el.scrollTop = el.scrollHeight; };
+const setValue = (id, x) => { const el=$(id); if(el) el.value = x == null ? "" : String(x); };
+
+const MODE = { 0:"Compose", 1:"Perform", 2:"Strum", 3:"Omni" };
+const QUALITY = {
+  1:"Major", 2:"Minor", 3:"Dorian", 4:"Phrygian", 5:"Lydian",
+  6:"Mixolydian", 7:"Locrian", 8:"Custom 0", 9:"Custom 1", 10:"Custom 2", 11:"Custom 3"
+};
+
+const fillSelect = (el, map) => {
+  el.innerHTML = "";
+  for (const [v, label] of Object.entries(map)) {
+    const o = document.createElement("option");
+    o.value = String(v);
+    o.textContent = label;
+    el.appendChild(o);
+  }
+};
+
+const setEnum = (el, map, n) => {
+  const s = String(n);
+  if (![...el.options].some(o => o.value === s)) {
+    const o = document.createElement("option");
+    o.value = s;
+    o.textContent = `Unknown (${s})`;
+    el.appendChild(o);
+  }
+  el.value = s;
+};
+
+let port, reader, writer;
+let reading = false;
+let readTask = null;
+
+$("chkRead").addEventListener("change", () => {
+  reading = $("chkRead").checked;
+  if (reading) startReadLoop();
+  else stopReadLoop();
+});
+
+async function connect(){
+  if (!("serial" in navigator)) { alert("Web Serial required"); return; }
+  port = await navigator.serial.requestPort();
+  await port.open({ baudRate: 115200 });
+  writer = port.writable.getWriter();
+  log("[INFO] Connected");
+  enable(true);
+  if ($("chkRead").checked) startReadLoop();
+}
+
+async function writeLine(s){
+  if (!writer) { log("[ERR ] Not connected"); return; }
+  await writer.write(new TextEncoder().encode(s + "\n"));
+}
+
+const formToJSON = () => ({
+  octave:+val("octave"),
+  extension_count:+val("extension_count"),
+  inversion:+val("inversion"),
+  velocity:+val("velocity"),
+  mode:+val("mode"),
+  octave_count:+val("octave_count"),
+  cutoff:+val("cutoff"),
+  channel:+val("channel"),
+  key:[
+    { Root:val("k0_root"), Quality:+val("k0_quality") },
+    { Root:val("k1_root"), Quality:+val("k1_quality") },
+    { Root:val("k2_root"), Quality:+val("k2_quality") }
+  ]
+});
+
+function jsonToForm(j){
+  ["octave","extension_count","inversion","velocity","octave_count","cutoff","channel"]
+    .forEach(k => setValue(k, j[k]));
+  setEnum($("mode"), MODE, j.mode);
+  for (let i = 0; i < 3; i++) {
+    const ki = j.key?.[i] || {};
+    setValue(`k${i}_root`, ki.Root ?? "");
+    setEnum($(`k${i}_quality`), QUALITY, ki.Quality ?? 0);
+  }
+}
+
+const LS_KEY = "touchord.preset.v1";
+const saveLocal = () => localStorage.setItem(LS_KEY, JSON.stringify(formToJSON()));
+function loadLocal(){
+  const t = localStorage.getItem(LS_KEY);
+  if (!t) return;
+  try { jsonToForm(JSON.parse(t)); } catch {}
+}
+
+function downloadText(filename, text){
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text], { type:"application/json" }));
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function openFile(accept, cb){
+  const inp = document.createElement("input");
+  inp.type = "file";
+  inp.accept = accept;
+  inp.onchange = async () => {
+    const f = inp.files?.[0];
+    if (!f) return;
+    cb(await f.text(), f);
+  };
+  inp.click();
+}
+
+const looksLikeJSON = s => {
+  if (!s) return false;
+  const t = s.trim();
+  const c = t[0];
+  return c === "{" || c === '"';
+};
+
+function handleLine(l){
+  if (!looksLikeJSON(l)) return;
+  try{
+    const o = JSON.parse(l);
+    if (o?.resp === "ok") { log("[RESP] ok"); return; }
+    if (o?.resp === "error") { log("[RESP] error"); return; }
+    const data = o?.resp === "data" ? o.data : (o?.key ? o : null);
+    if (data) { jsonToForm(data); saveLocal(); log("[DATA] Fields updated"); }
+    else { log("[INFO] Non-data message"); }
+  }catch(e){
+    log("[ERR ] JSON.parse: " + e);
+  }
+}
+
+function enable(on){
+  $("btnRead").disabled = $("btnWrite").disabled = !on;
+  $("btnSave").disabled = false;
+}
+
+function initUI(){
+  fillSelect($("mode"), MODE);
+  for (let i = 0; i < 3; i++) fillSelect($(`k${i}_quality`), QUALITY);
+
+  loadLocal();
+
+  document.addEventListener("input", e => {
+    if (e.target.matches("input,select,textarea")) saveLocal();
+  }, { capture:true });
+
+  $("btnConnect").onclick = () => connect().catch(err => log("[ERR ] " + err));
+  $("btnRead").onclick = () => { log("[CMD ] read"); writeLine("read"); };
+  $("btnWrite").onclick = () => {
+    const out = JSON.stringify(formToJSON());
+    log("[CMD ] write");
+    writeLine("write " + out);
+    saveLocal();
+  };
+  $("btnSave").onclick = () => {
+    const ts = new Date().toISOString().replace(/[:.]/g, "-");
+    downloadText(`touchord-${ts}.json`, JSON.stringify(formToJSON(), null, 2));
+  };
+  $("btnLoad").onclick = () => {
+    openFile(".json,application/json", (text, f) => {
+      try { const obj = JSON.parse(text); jsonToForm(obj); saveLocal(); log(`[LOAD] ${f.name}`); }
+      catch(e){ log("[ERR ] invalid JSON: " + e); }
+    });
+  };
+}
+
+async function startReadLoop(){
+  if (!port || !port.readable || readTask) return;
+  reader = port.readable.getReader();
+  readTask = readLoop().finally(() => { readTask = null; });
+}
+
+async function stopReadLoop(){
+  try{
+    if (reader){
+      reader.releaseLock();
+      reader = null;
+    }
+  }catch{}
+}
+
+async function readLoop(){
+  const dec = new TextDecoder();
+  let buf = "";
+  try{
+    while (reading && port && port.readable){
+      const { value, done } = await reader.read();
+      if (done) break;
+      if (!reading) break;
+      buf += dec.decode(value, { stream:true });
+      let eol;
+      while ((eol = buf.indexOf("\n")) !== -1){
+        const line = buf.slice(0, eol);
+        buf = buf.slice(eol + 1);
+        log("[RX  ] " + line);
+        const t = line.trim();
+        if (t) handleLine(t);
+        if (!reading) break;
+      }
+    }
+  }catch{} finally{
+    try { reader?.releaseLock(); } catch {}
+  }
+}
+
+window.addEventListener("DOMContentLoaded", initUI);
+</script>

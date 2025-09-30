@@ -67,50 +67,44 @@ void build_chord(
     }
     bool is_flat;
     uint8_t root = note_name_to_midi(key.root, octave, &is_flat);
-    if(!strcmp(key.quality, "maj"))
+    if(key.quality == SCALE_MAJOR)
     {
         if(chord_type != CHORD_PARALLEL)
-            root += major_scale_intervals[degree];
-        else root += minor_scale_intervals[degree];
-
+            root += scale_intervals[SCALE_MAJOR][degree];
+        else root += scale_intervals[SCALE_MINOR][degree];
     }
-    else if(!strcmp(key.quality, "min"))
+    else if(key.quality == SCALE_MINOR)
     {
         if(chord_type != CHORD_PARALLEL)
         {
-            root += minor_scale_intervals[degree];
+            root += scale_intervals[SCALE_MINOR][degree];
             if(!strcmp(key.root, "C"))
                 is_flat = true;
         }
         else 
-            root += major_scale_intervals[degree];
+            root += scale_intervals[SCALE_MAJOR][degree];
     }
+    else root += scale_intervals[key.quality][degree];
 
     if((chord_type == CHORD_AUG || chord_type == CHORD_SUS2 || chord_type == CHORD_SUS4))
     {
         extensions = 3;
     }
 
-    if(chord_type == CHORD_DEFAULT)
+    if (chord_type == CHORD_PARALLEL)
     {
-        if(!strcmp(key.quality, "maj"))
+        if(key.quality == SCALE_MAJOR)
         {
-            chord_type = major_scale[degree];
+            chord_type = scale_chords[SCALE_MINOR][degree];
         }
-        else if(!strcmp(key.quality, "min"))
+        else
         {
-            chord_type = minor_scale[degree];
+            chord_type = scale_chords[key.quality-1][degree];
         }
-    } else if (chord_type == CHORD_PARALLEL)
+    }
+    else
     {
-        if(!strcmp(key.quality, "min"))
-        {
-            chord_type = major_scale[degree];
-        }
-        else if(!strcmp(key.quality, "maj"))
-        {
-            chord_type = minor_scale[degree];
-        }
+        chord_type = scale_chords[key.quality][degree];
     }
 
     for (int i = 0; i < extensions; i++)

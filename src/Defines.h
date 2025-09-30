@@ -15,6 +15,8 @@
 
 #define DEFAULT_CUTOFF 100
 
+#define DEFAULT_DOUBLE_CLICK_MS 300
+
 #define PIN_SDA  16      
 #define PIN_SCL  17     
 #define TRILL_ADDR 0x20

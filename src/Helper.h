@@ -4,6 +4,8 @@
 #include "tusb.h"
 #include "pico/stdlib.h"
 #include "hardware/i2c.h"
+#include "hardware/timer.h"
+
 
 static inline void tc_log(const char* str)
 {
