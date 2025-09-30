@@ -204,14 +204,14 @@ button.secondary{
   <section class="section">
     <div class="legend">Core parameters</div>
     <div class="form-grid">
-      <div class="field field--sm"><label for="octave">Octave</label><input id="octave" type="number"></div>
-      <div class="field field--sm"><label for="extension_count">Extension Cnt</label><input id="extension_count" type="number"></div>
+      <div class="field field--sm"><label for="octave">Octave</label><input id="octave" type="number" min="0" max="7" step="1"></div>
+      <div class="field field--sm"><label for="extension_count">Extension Cnt</label><input id="extension_count" type="number" min="3" max="6" step="1"></div>
       <div class="field field--sm"><label for="inversion">Inversion</label><input id="inversion" type="number"></div>
-      <div class="field field--sm"><label for="velocity">Velocity</label><input id="velocity" type="number"></div>
+      <div class="field field--sm"><label for="velocity">Velocity</label><input id="velocity" type="number" min="0" max="127" step="1"></div>
       <div class="field field--sm"><label for="mode">Mode</label><select id="mode"></select></div>
-      <div class="field field--sm"><label for="octave_count">Octave Count</label><input id="octave_count" type="number"></div>
-      <div class="field field--sm"><label for="cutoff">Cut-off</label><input id="cutoff" type="number"></div>
-      <div class="field field--sm"><label for="channel">Channel</label><input id="channel" type="number"></div>
+      <div class="field field--sm"><label for="octave_count">Octave Count</label><input id="octave_count" type="number" min="1" max="4" step="1"></div>
+      <div class="field field--sm"><label for="cutoff">Cut-off</label><input id="cutoff" type="number" min="0" max="127" step="1"></div>
+      <div class="field field--sm"><label for="channel">Channel</label><input id="channel" type="number" min="0" max="15" step="1"></div>
     </div>
   </section>
 
@@ -467,4 +467,7 @@ async function readLoop(){
 }
 
 window.addEventListener("DOMContentLoaded", initUI);
+if (!("serial" in navigator)) {
+  alert("Web Serial is not supported in this browser. Use a Chromium-based desktop browser and enable serial permissions.");
+}
 </script>
