@@ -88,17 +88,7 @@ void compose_button_down(uint8_t button)
 
 void compose_button_double_down(uint8_t button)
 {
-    switch(button)
-    {
-        case 0: tc_app.mode = TOUCHORD_PERFORM; break;
-        case 1: 
-        if(tc_app.octave > 0) tc_app.octave+=1;
-        break;
-        case 2: 
-        if(tc_app.octave < 7) tc_app.octave-=1;
-        break;
-        default: break;
-    }
+    
 }
 
 void compose_button_up(uint8_t button)

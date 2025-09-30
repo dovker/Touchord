@@ -196,6 +196,8 @@ button.secondary{
 .chk input:checked + .box::after{opacity:1; transform:scale(1)}
 .chk input:disabled + .box{opacity:.45; cursor:not-allowed}
 .chk .label{font-size:13.5px; color:var(--muted)}
+
+.hidden{ display:none !important; }
 </style>
 
 <div class="app">
@@ -248,7 +250,7 @@ button.secondary{
     <label class="chk" for="chkRead">
       <input id="chkRead" type="checkbox">
       <span class="box" aria-hidden="true"></span>
-      <span class="label">Live read</span>
+      <span class="label">Show Log</span>
     </label>
   </div>
 
@@ -261,8 +263,31 @@ button.secondary{
 <script>
 const $ = id => document.getElementById(id);
 const val = id => $(id).value;
-const log = m => { const el=$("log"); el.textContent += m + "\n"; el.scrollTop = el.scrollHeight; };
+const logEl = () => $("log");
 const setValue = (id, x) => { const el=$(id); if(el) el.value = x == null ? "" : String(x); };
+
+const LOG_CAP = 2000;
+const logQueue = [];
+const pushLog = s => { if (logQueue.length >= LOG_CAP) logQueue.shift(); logQueue.push(s); };
+
+const flushLogs = () => {
+  if (logQueue.length === 0) return;
+  const el = $("log"); if (!el) return;
+  el.textContent += logQueue.join("\n") + "\n";
+  el.scrollTop = el.scrollHeight;
+  logQueue.length = 0;
+};
+
+const logLive = s => 
+{ 
+  const el = $("log"); 
+  if (el) { el.textContent += s + "\n"; el.scrollTop = el.scrollHeight; } 
+};
+
+const log = s => {
+  pushLog(s);
+  if ($("chkRead")?.checked) logLive(s);
+};
 
 const MODE = { 0:"Compose", 1:"Perform", 2:"Strum", 3:"Omni" };
 const QUALITY = {
@@ -296,9 +321,16 @@ let reading = false;
 let readTask = null;
 
 $("chkRead").addEventListener("change", () => {
-  reading = $("chkRead").checked;
-  if (reading) startReadLoop();
-  else stopReadLoop();
+  const show = $("chkRead").checked;
+  const el = $("log");
+  if (!el) return;
+  if (show){
+    el.classList.remove("hidden");
+    flushLogs();                 // dump buffered lines once
+  }else{
+    el.classList.add("hidden");
+    // Keep buffering in background; do not render
+  }
 });
 
 async function connect(){
@@ -308,7 +340,7 @@ async function connect(){
   writer = port.writable.getWriter();
   log("[INFO] Connected");
   enable(true);
-  if ($("chkRead").checked) startReadLoop();
+  startReadLoop();
 }
 
 async function writeLine(s){
@@ -446,28 +478,34 @@ async function readLoop(){
   const dec = new TextDecoder();
   let buf = "";
   try{
-    while (reading && port && port.readable){
+    while (port && port.readable){
       const { value, done } = await reader.read();
       if (done) break;
-      if (!reading) break;
       buf += dec.decode(value, { stream:true });
       let eol;
       while ((eol = buf.indexOf("\n")) !== -1){
         const line = buf.slice(0, eol);
         buf = buf.slice(eol + 1);
-        log("[RX  ] " + line);
         const t = line.trim();
-        if (t) handleLine(t);
-        if (!reading) break;
+        if (t) log("[RX  ] " + t);   // buffered always, shown only if Show Log
+        if (t) handleLine(t);        // continue updating UI/state
       }
     }
-  }catch{} finally{
+  }catch(e){
+    log("[ERR ] readLoop: " + e);
+  } finally{
     try { reader?.releaseLock(); } catch {}
   }
 }
 
-window.addEventListener("DOMContentLoaded", initUI);
-if (!("serial" in navigator)) {
+
+window.addEventListener("DOMContentLoaded", () => {
+  initUI();
+  $("log")?.classList.add("hidden");
+});
+
+if (!("serial" in navigator)) 
+{
   alert("Web Serial is not supported in this browser. Use a Chromium-based desktop browser and enable serial permissions.");
 }
 </script>
