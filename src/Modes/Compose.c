@@ -1,8 +1,8 @@
 #include "Compose.h"
 #include "Globals.h"
-#include "Midi.h"
+#include "IO/Midi.h"
 #include "Notes/Note.h"
-
+#include "Rendering/Graphics.h"
 
 bool compose_default = true;
 bool compose_sustain = false;
@@ -28,6 +28,8 @@ void compose_end()
 
 void compose_draw()
 {
+    draw_current_chord();
+
     ssd1306_draw_line(&tc_disp, 0, 60, 30, 60);
     ssd1306_draw_string_with_font(&tc_disp, 37, 54, 2, font_3x6, "Compose");
     ssd1306_draw_line(&tc_disp, 96, 60, 128, 60);

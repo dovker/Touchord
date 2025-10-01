@@ -1,5 +1,5 @@
 #include "Settings.h"
-#include "Midi.h"
+#include "IO/Midi.h"
 #include "Notes/Note.h"
 
 void settings_start()

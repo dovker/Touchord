@@ -9,8 +9,8 @@
 #include "Types.h"
 #include "Helper.h"
 #include "Globals.h"
-#include "Midi.h"
-#include "Parser.h"
+#include "IO/Midi.h"
+#include "Data/Parser.h"
 #include "Notes/Note.h"
 
 #include "bsp/board.h"
@@ -94,8 +94,6 @@ void poll_buttons()
     }
     sleep_ms(10);
 }
-
-
 
 void poll_trill_bar(TrillBar* bar)
 {
@@ -227,18 +225,6 @@ void io_task()
 
         tc_draw();
         tc_update();
-
-        uint32_t len = strlen(tc_app.chord_name);
-        uint8_t text_w = len * 6 - 1;
-        ssd1306_draw_string(&tc_disp, 64 - text_w, 24, 2, tc_app.chord_name);
-
-        uint8_t rootLen = strlen(tc_app.key[tc_app.current_key].root);
-        uint8_t qualLen = strlen(scale_names[tc_app.key[tc_app.current_key].quality]);
-        text_w = (6 + rootLen + qualLen) * 6 - 1;
-        uint8_t pos = 64-text_w/2;
-        ssd1306_draw_string(&tc_disp, pos, 0, 1, "Key:");
-        ssd1306_draw_string(&tc_disp, pos + 25, 0, 1, tc_app.key[tc_app.current_key].root);
-        ssd1306_draw_string(&tc_disp, pos + 30 + rootLen * 6, 0, 1, scale_names[tc_app.key[tc_app.current_key].quality]);
         
         ssd1306_show(&tc_disp);
     }

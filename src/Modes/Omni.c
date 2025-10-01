@@ -1,7 +1,8 @@
 #include "Omni.h"
 #include "Globals.h"
-#include "Midi.h"
+#include "IO/Midi.h"
 #include "Notes/Note.h"
+#include "Rendering/Graphics.h"
 
 uint8_t omniLastNote = 0;
 uint8_t omniPrevSegment = -1;
@@ -31,6 +32,8 @@ void omni_end()
 
 void omni_draw()
 {
+    draw_current_chord();
+
     ssd1306_draw_line(&tc_disp, 0, 60, 44, 60);
     ssd1306_draw_string_with_font(&tc_disp, 50, 54, 2, font_3x6, "Omni");
     ssd1306_draw_line(&tc_disp, 84, 60, 128, 60);

@@ -3,7 +3,7 @@
 #include "Defines.h"
 #include "Types.h"
 
-#include "Trill.h"
+#include "IO/Trill.h"
 #include "ssd1306.h"
 #include "font.h"
 
