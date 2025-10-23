@@ -4,6 +4,7 @@
 #include "pico/binary_info.h"
 #include "pico/multicore.h"
 #include "pico/bootrom.h"
+#include "pico/time.h"
 
 #include "Defines.h"
 #include "Types.h"
@@ -21,6 +22,7 @@
 #include "Modes/Strum.h"
 #include "Modes/Omni.h"
 #include "Modes/Settings.h"
+
 
 void led_blinking_task(void);
 static uint32_t blink_interval_ms = BLINK_NOT_MOUNTED;
@@ -201,6 +203,7 @@ void io_task()
 {   
     sleep_ms(1000);
     ssd1306_clear(&tc_disp);
+
     while(tc_running)
     {
         if(tc_trigger_bootsel)
@@ -272,6 +275,7 @@ int main()
 
     tc_disp.external_vcc = false;
     ssd1306_init(&tc_disp, 128, 64, 0x3C, i2c0);
+    ssd1306_contrast(&tc_disp, 0xFF);
     ssd1306_clear(&tc_disp);
     ssd1306_draw_string(&tc_disp, 10, 24, 2, "Touchord");
     ssd1306_show(&tc_disp);
