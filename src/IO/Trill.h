@@ -104,9 +104,9 @@ static void trill_identify(TrillBar* bar)
 
 static void trill_read(TrillBar* bar)
 {
-    uint8_t data = TRILL_REG_DATA;
-    trill_writeto(bar, &data, 1);
-    sleep_ms(TRILL_SLEEP);
+    // uint8_t data = TRILL_REG_DATA;
+    // trill_writeto(bar, &data, 1);
+    // sleep_ms(TRILL_SLEEP);
     if(bar->mode == TRILL_MODE_CENTROID)
     {
         trill_readfrom_mem16(bar, TRILL_REG_DATA, bar->data, 2 * TRILL_MAX_TOUCHES);
@@ -127,6 +127,13 @@ static void trill_set_mode(TrillBar* bar, uint8_t mode)
 static void trill_set_noise_threshold(TrillBar* bar, uint8_t value)
 {
     uint8_t data[2] = {TRILL_COMMAND_NOISE_THRESHOLD, value};
+    trill_writeto_mem(bar, TRILL_REG_COMMAND, data, 2);
+    sleep_ms(TRILL_SLEEP);
+}
+
+static void trill_set_auto_scan(TrillBar* bar, uint8_t value)
+{
+    uint8_t data[2] = {TRILL_COMMAND_AUTO_SCAN_INTERVAL, value};
     trill_writeto_mem(bar, TRILL_REG_COMMAND, data, 2);
     sleep_ms(TRILL_SLEEP);
 }
@@ -224,7 +231,7 @@ static TrillBar trill_init(i2c_inst_t *i2c_i, uint8_t address)
     bar.mode = TRILL_MODE_DIFF;
 
     trill_set_mode(&bar, bar.mode);
-    trill_set_scan_settings(&bar, 0, 12);
+    trill_set_scan_settings(&bar, 0, 9);
     trill_set_noise_threshold(&bar, 255);
     trill_update_baseline(&bar);
 

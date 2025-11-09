@@ -271,6 +271,7 @@ int main()
     setup_midi_trs();
 
     tc_bar = trill_init(i2c0, TRILL_ADDR);
+    trill_set_auto_scan(&tc_bar, 1);
     trill_set_noise_threshold(&tc_bar, 255);
 
     tc_disp.external_vcc = false;
