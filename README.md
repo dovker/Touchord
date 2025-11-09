@@ -2,6 +2,11 @@
 
 Touchord is an open source chord-generating MIDI controller featuring a touch bar interface. It is designed for musicians seeking versatile chordal playing and performance options and for makers looking for a highly modifyable product with a realistic and fun use.
 
+## [TOUCHORD IS LIVE ON INDIEGOGO](https://www.indiegogo.com/en/projects/mbdaugdara/touchord-chord-generating-midi-controller)
+
+## Youtube Showcase
+[![Showcase video](https://img.youtube.com/vi/dFS27xT5Rgg/0.jpg)](https://www.youtube.com/watch?v=dFS27xT5Rgg)
+
 ## Motivation
 
 Making music without formal training is hard. Learning theory takes time, and when the goal is to create and express ideas quickly, it can feel tedious. Chord progressions and harmony are crucial yet difficult to master; exploring by ear works, but entering complex chords on guitar or piano is slow. That is where chord‑generating synths and MIDI controllers help.
