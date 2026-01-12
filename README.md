@@ -1,11 +1,9 @@
 # Touchord
+<p align="center"> <img src="./img/logo.png" width="200"> </p>
 
 Touchord is an open source chord-generating MIDI controller featuring a touch bar interface. It is designed for musicians seeking versatile chordal playing and performance options and for makers looking for a highly modifyable product with a realistic and fun use.
 
-## [TOUCHORD IS LIVE ON INDIEGOGO](https://www.indiegogo.com/en/projects/mbdaugdara/touchord-chord-generating-midi-controller)
-
-## Youtube Showcase
-[![Showcase video](https://img.youtube.com/vi/dFS27xT5Rgg/0.jpg)](https://www.youtube.com/watch?v=dFS27xT5Rgg)
+## [TOUCHORD DIY KIT PRE-ORDERS](https://daugdara.com/products/touchord-diy-kit)
 
 ## Motivation
 
@@ -14,6 +12,7 @@ Making music without formal training is hard. Learning theory takes time, and wh
 **Why not buy an existing similar device?** Many are closed‑source and built by unestablished companies with limited support histories. When projects are abandoned or parts become unavailable, devices turn into e‑waste.
 
 Touchord addresses these problems. Components are common, 3D‑printable, or manufacturable at a reasonable cost, thus repairs and replacements remain feasible. Open development also streamlines bug fixes and issue tracking because contributors can help accelerate software improvements. And if we for some reason stop developing new updates or cannot contribute anymore, community still remains along with the source code and all the production files, keeping the project alive.
+
 
 ## Features
 
@@ -46,43 +45,19 @@ Touchord addresses these problems. Components are common, 3D‑printable, or man
     - **TRS Type A (Standard MIDI TRS)**
     - **TRS Type B (Roland TRS MIDI)**
 
-## Project Stage
-
-- Enclosure design and manufacturing are finished.
-- PCB is at the last stage of production. Final version need to be manufactured and tested.
-- Software implements all major functions, TRS and USB MIDI, Playing modes. User settings and presets left.
-
-- ### Next steps?
-
-1. Launch IndieGoGo campaign and start the funding process;
-2. Finalize hardware;
-3. CE and RoHS certification;
-4. Finalize Software, with Beta testing to improve overall user experience;
-5. Manufacture and fulfill IndieGoGo orders. Touchord was designed with simple manufacturing in mind;
-6. Improve the software with updates and encourage the community to customize and expand the project to their needs.
-
-## Versions
-
-Users will be able to select from three versions:
-
-1. **Case-less Kit:**  
-   For DIY enthusiasts wanting to customise the enclosure and mechanical switches.
-
-2. **3D Printed Model:**  
-   Features a carbon fiber PETG base and glass fiber PETG top, providing a sturdy printed enclosure.
-
-3. **Premium Metal Model:**  
-   Includes a CNC machined aluminum top for a high-end aesthetic and durability.
-
-
 ---
 
-## Visuals
+## Showcase
 
-![Render Side View](./img/TC%20Render%202.png)  
-![Render Front View](./img/TC%20Render%201.png)  
-*(Images show design renders from different angles)*
+[![Showcase video](https://img.youtube.com/vi/dFS27xT5Rgg/0.jpg)](https://www.youtube.com/watch?v=dFS27xT5Rgg)
+![Touchord standard edition](./img/DSC_5180.jpg)  
+![Touchord On a grander scale](./img/DSC_5172.jpg)  
+![Touchord PCB](./img/Touchord%20Board%20Visual.png)  
 
+## Projects based on Touchord
+
+### "Ghetto" Touchord made using Pico 2W by [nlpeeee](https://github.com/nlpeeee/TCw)
+!["Ghetto Touchord"](./img/ghettotouchard.jpeg)  
 ---
 
 *Find the Trill Bar by Bella:* [https://bela.io/products/trill/](https://bela.io/products/trill/) 
