@@ -11,11 +11,30 @@
 
 static const TouchordSettings tc_app_default = {
     SETTINGS_MAGIC,
-    {{"C", SCALE_MAJOR}, {"E", SCALE_MINOR}, {"D", SCALE_CUSTOM0}}, 0,
+    {{NOTE_C, SCALE_MAJOR}, {NOTE_E, SCALE_MINOR}, {NOTE_B_FLAT, SCALE_CUSTOM0}}, 0,
     DEFAULT_OCTAVE, DEFAULT_EXTENSIONS, DEFAULT_INVERSION, DEFAULT_VELOCITY, 
     TOUCHORD_COMPOSE, DEFAULT_OCTAVE_COUNT, 0,
     {0, 0, 0, 0, 0, 0}, {'\0'}, CHORD_DEFAULT,
-    DEFAULT_EXTENSIONS, MIDI_CHANNEL
+    DEFAULT_EXTENSIONS, MIDI_CHANNEL, MIDI_TRS_A,
+
+    //Custom Scales
+    {
+        {CHORD_MAJOR, CHORD_MAJOR, CHORD_MAJOR, CHORD_MAJOR, CHORD_MAJOR, CHORD_MAJOR, CHORD_MAJOR}, // Custom0
+        {CHORD_MINOR, CHORD_MINOR, CHORD_MINOR, CHORD_MINOR, CHORD_MINOR, CHORD_MINOR, CHORD_MINOR},
+        {CHORD_DOMINANT, CHORD_DOMINANT, CHORD_DOMINANT, CHORD_DOMINANT, CHORD_DOMINANT, CHORD_DOMINANT, CHORD_DOMINANT},
+        {CHORD_DIM, CHORD_DIM, CHORD_DIM, CHORD_DIM, CHORD_DIM, CHORD_DIM, CHORD_DIM} // Custom3
+    },
+    {
+        { 0, 1, 2, 3, 4, 5, 6 }, // C0
+        { 0, 1, 2, 3, 4, 5, 6 }, // C1
+        { 0, 1, 2, 3, 4, 5, 6 }, // C2
+        { 0, 1, 2, 3, 4, 5, 6 } // C3
+    },
+
+    //Mode Customization
+    COMPOSE_DEGREE, false,
+
+    MIDI_CUTOFF, MIDI_MOD, DEFAULT_CUTOFF, 0, false, true,
 };
 extern TouchordSettings tc_app;
 extern TouchordSettings tc_app_working;
@@ -24,6 +43,7 @@ extern void (*tc_draw)();
 extern void (*tc_update)();
 extern void (*tc_key_down)(uint8_t);
 extern void (*tc_key_up)(uint8_t);
+extern void (*tc_key_up_independent)(uint8_t);
 extern void (*tc_button_down)(uint8_t);
 extern void (*tc_button_double_down)(uint8_t);
 extern void (*tc_button_up)(uint8_t);

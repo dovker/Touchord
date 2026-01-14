@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include "Defines.h"
 #include "Types.h"
+#include "Globals.h"
 
 static const char* sharp_names[12] = {
     "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
@@ -61,6 +62,8 @@ static const uint8_t chord_intervals[8][6] =
     {0, 2, 7, 0, 0, 0}, // Sus2
     {0, 5, 7, 0, 0, 0}  // Sus4
 };
+
+void reload_custom_scales();
 
 const char* interval_name_from_semitones(int semitones);
 const char* deg_name(ChordDegree deg);

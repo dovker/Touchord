@@ -10,15 +10,15 @@ int touchord_settings_from_json(char *text, TouchordSettings *s)
     if (!root || json_getType(root) != JSON_OBJ) return -1;
 
     /* integers */
-    struct { const char *tag; int *dst; } ints[] = {
+    struct { const char *tag; uint8_t *dst; } ints[] = {
         {"octave",         &s->octave},
         {"extension_count",&s->extension_count},
         {"inversion",      &s->inversion},
         {"velocity",       &s->velocity},
-        {"mode",           (int*)&s->mode},
+        {"mode",           (uint8_t*)&s->mode},
         {"octave_count",   &s->octave_count},
         {"cutoff",         &s->cutoff},
-        {"channel",        (int*)&s->channel},
+        {"channel",        (uint8_t*)&s->channel},
     };
     for (size_t i = 0; i < sizeof ints/sizeof *ints; ++i) {
         json_t const *j = json_getProperty(root, ints[i].tag);
@@ -36,9 +36,9 @@ int touchord_settings_from_json(char *text, TouchordSettings *s)
                 json_t const *r = json_getProperty(el, "Root");
                 json_t const *q = json_getProperty(el, "Quality");
                 if (r && json_getType(r) == JSON_TEXT) {
-                    strncpy(s->key[idx].root, json_getValue(r),
-                            sizeof s->key[idx].root - 1);
-                    s->key[idx].root[sizeof s->key[idx].root - 1] = '\0';
+                    // strncpy(s->key[idx].root, json_getValue(r),
+                    //         sizeof s->key[idx].root - 1);
+                    // s->key[idx].root[sizeof s->key[idx].root - 1] = '\0';
                 }
                 if (q && json_getType(q) == JSON_INTEGER) {
                     s->key[idx].quality = (ScaleType)json_getInteger(q);

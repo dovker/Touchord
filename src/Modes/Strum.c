@@ -13,6 +13,7 @@ void strum_start()
     tc_update      = &strum_update;
     tc_key_down    = &strum_key_down;
     tc_key_up      = &strum_key_up;
+    tc_key_up_independent      = &strum_key_up_independent;
     tc_button_down = &strum_button_down;
     tc_button_double_down = &strum_button_double_down;
     tc_button_up   = &strum_button_up;
@@ -48,6 +49,11 @@ void strum_key_down(uint8_t key)
 }
 
 void strum_key_up(uint8_t key)
+{
+
+}
+
+void strum_key_up_independent(uint8_t key)
 {
 
 }

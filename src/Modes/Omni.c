@@ -14,6 +14,7 @@ void omni_start()
     tc_update      = &omni_update;
     tc_key_down    = &omni_key_down;
     tc_key_up      = &omni_key_up;
+    tc_key_up_independent      = &omni_key_up_independent;
     tc_button_down = &omni_button_down;
     tc_button_double_down = &omni_button_double_down;
     tc_button_up   = &omni_button_up;
@@ -71,11 +72,16 @@ void omni_key_up(uint8_t key)
     send_midi_note(tc_app.channel, NOTE_OFF, playingFifth, tc_app.velocity);
 }
 
+void omni_key_up_independent(uint8_t key)
+{
+    
+}
+
 void omni_button_down(uint8_t button)
 {
     switch(button)
     {
-        case 0: tc_app.mode = TOUCHORD_COMPOSE; break;
+        case 0: tc_app.mode = TOUCHORD_DRUM; break;
         case 1: 
         if(tc_app.octave > 1) tc_app.octave--;
         break;

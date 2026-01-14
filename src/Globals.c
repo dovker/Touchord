@@ -7,6 +7,7 @@ void (*tc_draw)() = NULL;
 void (*tc_update)() = NULL;
 void (*tc_key_down)(uint8_t) = NULL;
 void (*tc_key_up)(uint8_t) = NULL;
+void (*tc_key_up_independent)(uint8_t) = NULL;
 void (*tc_button_down)(uint8_t) = NULL;
 void (*tc_button_double_down)(uint8_t) = NULL;
 void (*tc_button_up)(uint8_t) = NULL;

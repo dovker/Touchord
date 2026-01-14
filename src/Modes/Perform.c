@@ -4,12 +4,14 @@
 #include "Notes/Note.h"
 #include "Rendering/Graphics.h"
 
+
 void perform_start()
 {
     tc_draw        = &perform_draw;
     tc_update      = &perform_update;
     tc_key_down    = &perform_key_down;
     tc_key_up      = &perform_key_up;
+    tc_key_up_independent      = &perform_key_up_independent;
     tc_button_down = &perform_button_down;
     tc_button_up   = &perform_button_up;
     tc_trill_down  = &perform_trill_down;
@@ -18,9 +20,9 @@ void perform_start()
 
 void perform_end()
 {
-    send_midi_cc(tc_app.channel, MIDI_CUTOFF, DEFAULT_CUTOFF);
-    if(tc_touch_state)
-        send_midi_cc(tc_app.channel, MIDI_MOD, 0);
+    send_midi_chord(tc_app.channel, NOTE_OFF, tc_app.chord, tc_app.extension_count, tc_app.velocity);
+    send_midi_cc(tc_app.channel, tc_app.perform_pos_cc, tc_app.perform_pos_default);
+    send_midi_cc(tc_app.channel, tc_app.perform_size_cc, tc_app.perform_size_default);
     tc_app.chord_name[0] = '\0';
 }
 
@@ -40,7 +42,7 @@ void perform_update()
 
 void perform_key_down(uint8_t key)
 {
-    send_midi_chord(tc_app.channel, NOTE_OFF, tc_app.chord, tc_app.prev_extension, tc_app.velocity);
+    send_midi_chord(tc_app.channel, NOTE_OFF, tc_app.chord, tc_app.extension_count, tc_app.velocity);
     build_chord(tc_app.key[tc_app.current_key], tc_app.octave, key, tc_app.degree, 
                 tc_app.extension_count, tc_app.inversion, tc_app.chord, tc_app.chord_name);
     send_midi_chord(tc_app.channel, NOTE_ON, tc_app.chord, tc_app.extension_count, tc_app.velocity);
@@ -48,11 +50,16 @@ void perform_key_down(uint8_t key)
 
 void perform_key_up(uint8_t key)
 {
-    send_midi_chord(tc_app.channel, NOTE_OFF, tc_app.chord, tc_app.prev_extension, tc_app.velocity);
+    send_midi_chord(tc_app.channel, NOTE_OFF, tc_app.chord, tc_app.extension_count, tc_app.velocity);
 
     build_chord(tc_app.key[tc_app.current_key], tc_app.octave, 0, CHORD_DEFAULT, 
                         0, tc_app.inversion, tc_app.chord, tc_app.chord_name);
     tc_app.chord_name[0] = '\0';
+}
+
+void perform_key_up_independent(uint8_t key)
+{
+
 }
 
 void perform_button_down(uint8_t button)
@@ -72,6 +79,11 @@ void perform_button_down(uint8_t button)
     }
 }
 
+void perform_button_double_down(uint8_t button)
+{
+    
+}
+
 void perform_button_up(uint8_t button)
 {
 
@@ -79,11 +91,14 @@ void perform_button_up(uint8_t button)
 
 void perform_trill_down(float pos, float size)
 {
-    send_midi_cc(tc_app.channel, MIDI_CUTOFF, 127 - (pos * 127));
-    send_midi_cc(tc_app.channel, MIDI_MOD, (127 - (pos * 127))*size);
+    send_midi_cc(tc_app.channel, tc_app.perform_pos_cc, 127 - (pos * 127));
+    send_midi_cc(tc_app.channel, tc_app.perform_size_cc, (127 - (pos * 127))*size);
 }
 
 void perform_trill_up()
 {
-    send_midi_cc(tc_app.channel, MIDI_MOD, 0);
+    if(tc_app.perform_reset_pos_on_lift)
+        send_midi_cc(tc_app.channel, tc_app.perform_pos_cc, tc_app.perform_pos_default);
+    if(tc_app.perform_reset_size_on_lift)
+        send_midi_cc(tc_app.channel, tc_app.perform_size_cc, tc_app.perform_size_default);
 }

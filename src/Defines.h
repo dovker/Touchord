@@ -48,5 +48,7 @@
 #define DEFAULT_INVERSION 0
 #define DEFAULT_OCTAVE_COUNT 3
 
+#define MAX_UI_DEPTH 8
+#define MAX_UI_NODES 64
 
 #endif

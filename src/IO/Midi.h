@@ -7,7 +7,7 @@
 #include "Types.h"
 
 void switch_midi_trs(MidiType type);
-void setup_midi_trs();
+void setup_midi_trs(MidiType type);
 void send_trs_midi(uint8_t* data, uint8_t len);
 
 void send_midi_note(uint8_t channel, uint8_t status, uint8_t note, uint8_t velocity);

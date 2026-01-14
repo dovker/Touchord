@@ -52,8 +52,35 @@ uint8_t note_name_to_midi(const char* note, int octave, bool* flat) {
     return -1;
 }
 
+uint8_t note_to_midi(Note note, int octave, bool* flat) {
+    static const int values[] = { 0, 1, 1, 2, 3, 3, 4, 5, 6, 6, 7, 8, 8, 9, 10, 10, 11 };
+    static const bool flats[] = { 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0 };
+
+    *flat = flats[note];
+    return values[note] + 12 * (octave + 1);
+    return -1;
+}
+
 const char* get_note_name(int midi, bool flat) {
     return flat ? flat_names[midi % 12] : sharp_names[midi % 12];
+}
+
+void reload_custom_scales()
+{
+    size_t size_chords = sizeof(tc_app.custom_scale_chords[0]) * 4;
+    size_t size_intervals = sizeof(tc_app.custom_scale_intervals[0]) * 4;
+    memcpy(scale_chords[SCALE_CUSTOM0], tc_app.custom_scale_chords[0], size_chords);
+    memcpy(scale_intervals[SCALE_CUSTOM0], tc_app.custom_scale_intervals[0], size_intervals);
+
+    // scale_chords[SCALE_CUSTOM0] = tc_app.custom_scale_chords[0];
+    // scale_chords[SCALE_CUSTOM1] = tc_app.custom_scale_chords[1];
+    // scale_chords[SCALE_CUSTOM2] = tc_app.custom_scale_chords[2];
+    // scale_chords[SCALE_CUSTOM3] = tc_app.custom_scale_chords[3];
+
+    // scale_intervals[SCALE_CUSTOM0] = tc_app.custom_scale_intervals[0];
+    // scale_intervals[SCALE_CUSTOM1] = tc_app.custom_scale_intervals[1];
+    // scale_intervals[SCALE_CUSTOM2] = tc_app.custom_scale_intervals[2];
+    // scale_intervals[SCALE_CUSTOM3] = tc_app.custom_scale_intervals[3];
 }
 
 
@@ -66,7 +93,7 @@ void build_chord(
         midi_out[i] = 0;
     }
     bool is_flat;
-    uint8_t root = note_name_to_midi(key.root, octave, &is_flat);
+    uint8_t root = note_to_midi(key.root, octave, &is_flat);
     if(key.quality == SCALE_MAJOR)
     {
         if(chord_type != CHORD_PARALLEL)
@@ -78,7 +105,7 @@ void build_chord(
         if(chord_type != CHORD_PARALLEL)
         {
             root += scale_intervals[SCALE_MINOR][degree];
-            if(!strcmp(key.root, "C"))
+            if(key.root == NOTE_C)
                 is_flat = true;
         }
         else 

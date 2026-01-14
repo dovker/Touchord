@@ -11,6 +11,7 @@ void strum_draw();
 void strum_update();
 void strum_key_down(uint8_t key);
 void strum_key_up(uint8_t key);
+void strum_key_up_independent(uint8_t key);
 void strum_button_down(uint8_t button);
 void strum_button_double_down(uint8_t button);
 void strum_button_up(uint8_t button);

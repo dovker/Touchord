@@ -17,14 +17,14 @@ void switch_midi_trs(MidiType type)
         break;
     }
 }
-void setup_midi_trs()
+void setup_midi_trs(MidiType type)
 {
     gpio_init(MIDI_PIN_IN_1);
     gpio_init(MIDI_PIN_IN_2);
     gpio_set_dir(MIDI_PIN_IN_1, GPIO_OUT);
     gpio_set_dir(MIDI_PIN_IN_2, GPIO_OUT);
 
-    switch_midi_trs(MIDI_TRS_A);
+    switch_midi_trs(type);
 
     uart_init(uart1, MIDI_BAUD_RATE);
     gpio_set_function(MIDI_PIN_DAT, GPIO_FUNC_UART); //MIDI_PIN_DAT is TX pin

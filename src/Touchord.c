@@ -21,6 +21,7 @@
 #include "Modes/Perform.h"
 #include "Modes/Strum.h"
 #include "Modes/Omni.h"
+#include "Modes/Drum.h"
 #include "Modes/Settings.h"
 
 
@@ -88,9 +89,13 @@ void poll_buttons()
             tc_key_states[i] = curr_state;
             break;
         }
-        else if(!tc_key_states[i] && curr_state && tc_last_key == i)
+        else if(!tc_key_states[i] && curr_state)
         {
-            tc_key_up(i);
+            if(tc_last_key == i)
+            {
+                tc_key_up(i);
+            }
+            tc_key_up_independent(i);
         }
         tc_key_states[i] = curr_state;
     }
@@ -158,6 +163,7 @@ void select_mode(TouchordMode mode)
         case TOUCHORD_STRUM: strum_end(); break;
         case TOUCHORD_PERFORM: perform_end(); break;
         case TOUCHORD_OMNI: omni_end(); break;
+        case TOUCHORD_DRUM: drum_end(); break;
         case TOUCHORD_SETTINGS: settings_end(); break;
     }
     switch(mode)
@@ -182,17 +188,14 @@ void select_mode(TouchordMode mode)
             omni_start();
         }
         break;
+        case TOUCHORD_DRUM:
+        {
+            drum_start();
+        }
+        break;
         case TOUCHORD_SETTINGS:
         {
-            // compose_start();
-            // tc_state->draw        = compose_draw;
-            // tc_state->update      = compose_update;
-            // tc_state->key_down    = compose_key_down;
-            // tc_state->key_up      = compose_key_up;
-            // tc_state->button_down = compose_button_down;
-            // tc_state->button_up   = compose_button_up;
-            // tc_state->trill_down  = compose_trill_down;
-            // tc_state->trill_up    = compose_trill_up;
+            settings_start();
         }
         break;
     }
@@ -260,15 +263,18 @@ void serial_poll(void)
 
 int main()
 {
-    //stdio_init_all();
     board_init();
+    init_GPIO();
     sleep_ms(500);
+    
+    if(!gpio_get(CONTROL_0))
+        rom_reset_usb_boot(0, 0);
+
     tud_init(0);
     sleep_ms(500);
 
-    init_GPIO();
     init_i2c();
-    setup_midi_trs();
+    setup_midi_trs(tc_app.midi_type);
 
     tc_bar = trill_init(i2c0, TRILL_ADDR);
     trill_set_auto_scan(&tc_bar, 1);
@@ -281,6 +287,7 @@ int main()
     ssd1306_draw_string(&tc_disp, 10, 24, 2, "Touchord");
     ssd1306_show(&tc_disp);
     
+    reload_custom_scales();
     compose_start();
 
     multicore_launch_core1(io_task);
@@ -323,10 +330,9 @@ void led_blinking_task(void)
   static uint32_t start_ms = 0;
   static bool led_state = false;
 
-  // Blink every interval ms
-  if ( board_millis() - start_ms < blink_interval_ms) return; // not enough time
+  if ( board_millis() - start_ms < blink_interval_ms) return;
   start_ms += blink_interval_ms;
 
   board_led_write(led_state);
-  led_state = 1 - led_state; // toggle
+  led_state = 1 - led_state;
 }
