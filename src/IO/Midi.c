@@ -1,4 +1,5 @@
 #include "Midi.h"
+#include "Globals.h"
 #include "tusb.h"
 #include "hardware/uart.h"
 
@@ -55,7 +56,13 @@ void send_midi_note(uint8_t channel, uint8_t status, uint8_t note, uint8_t veloc
         note,
         velocity
     };
-    tud_midi_stream_write(0, packet, 3);
+    uint32_t bytes_written = tud_midi_stream_write(0, packet, 3);
+
+    if (status == NOTE_ON && velocity != 0 && bytes_written == 3) {
+        tc_debug_last_usb_midi_note = (int8_t)note;
+        tc_debug_usb_midi_note_count++;
+    }
+
     send_trs_midi(packet, 3);
 }
 
@@ -68,6 +75,39 @@ void send_midi_cc(uint8_t channel, uint8_t cc_num, uint8_t cc_value) {
     };
     tud_midi_stream_write(0, packet, 3);
     send_trs_midi(packet, 3);
+}
+
+void send_midi_program_change(uint8_t channel, uint8_t program)
+{
+    uint8_t packet[2] = {
+        (uint8_t)(0xC0 | (channel & 0x0F)),
+        program
+    };
+
+    tud_midi_stream_write(0, packet, 2);
+    send_trs_midi(packet, 2);
+}
+
+void send_midi_pitch_bend(uint8_t channel, uint16_t bend)
+{
+    uint8_t packet[3] = {
+        (uint8_t)(0xE0 | (channel & 0x0F)),
+        (uint8_t)(bend & 0x7F),
+        (uint8_t)((bend >> 7) & 0x7F)
+    };
+
+    tud_midi_stream_write(0, packet, 3);
+    send_trs_midi(packet, 3);
+}
+
+void send_midi_pedal(uint8_t channel, uint8_t value)
+{
+    send_midi_cc(channel, 0x40, value);
+}
+
+void send_midi_all_notes_off(uint8_t channel)
+{
+    send_midi_cc(channel, 0x7B, 0);
 }
 
 void send_poly_aftertouch(uint8_t channel, uint8_t note, uint8_t pressure) {

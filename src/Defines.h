@@ -4,7 +4,7 @@
 #define NOTE_ON  0x90
 #define NOTE_OFF 0x80
 #define MIDI_CHANNEL 0
-#define MIDI_NOTE 60
+#define DEFAULT_MIDI_NOTE 60
 #define MIDI_CUTOFF 74
 #define MIDI_MOD 1
 
@@ -16,11 +16,26 @@
 #define DEFAULT_CUTOFF 100
 
 #define DEFAULT_DOUBLE_CLICK_MS 300
+#define ENABLE_BOOTSEL_ON_STARTUP 0
+#define ENABLE_BOOTSEL_BUTTON_CHORD 0
 
-#define PIN_SDA  16      
-#define PIN_SCL  17     
+#define PIN_SDA  14
+#define PIN_SCL  15
 #define TRILL_ADDR 0x20
 #define DISP_ADDR 0x3C
+
+#define AUDIO_I2S_BCLK_PIN  27
+#define AUDIO_I2S_LRCLK_PIN 28
+#define AUDIO_I2S_DATA_PIN  29
+// The PIO program side-set drives BCLK on the base pin and LRCLK on base + 1.
+#define AUDIO_I2S_CLOCK_PIN_BASE AUDIO_I2S_BCLK_PIN
+#define AUDIO_I2S_DMA_CHANNEL 0
+#define AUDIO_I2S_PIO_INDEX   0
+#define AUDIO_I2S_SM          0
+#define AUDIO_TEST_TONE_DEFAULT   0
+#define AUDIO_TEST_TONE_FREQUENCY 440
+#define AUDIO_TEST_TONE_LEVEL     5000
+#define AUDIO_BOOT_TONE_BLOCKS    172
 
 #define LED_PIN 25
 #define CONTROL_0 1
@@ -50,5 +65,8 @@
 
 #define MAX_UI_DEPTH 8
 #define MAX_UI_NODES 64
+#define TC_SYNTH_EVENT_QUEUE_DEPTH 256
+#define TC_SYNTH_VOICE_COUNT       4
+#define TC_SYNTH_PATCH_NUMBER      1
 
 #endif

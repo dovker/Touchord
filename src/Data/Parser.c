@@ -1,5 +1,10 @@
 #include "Parser.h"
+#include "Helper.h"
 #include "tiny-json.h"
+#include "IO/Midi.h"
+#include "IO/Output.h"
+#include "Notes/Note.h"
+#include "Synth/AmyEngine.h"
 
 int touchord_settings_from_json(char *text, TouchordSettings *s)
 {
@@ -19,6 +24,8 @@ int touchord_settings_from_json(char *text, TouchordSettings *s)
         {"octave_count",   &s->octave_count},
         {"cutoff",         &s->cutoff},
         {"channel",        (uint8_t*)&s->channel},
+        {"output_mode",    (uint8_t*)&s->output_mode},
+        {"debug_overlay",  (uint8_t*)&s->debug_overlay},
     };
     for (size_t i = 0; i < sizeof ints/sizeof *ints; ++i) {
         json_t const *j = json_getProperty(root, ints[i].tag);
@@ -67,10 +74,10 @@ void touchord_settings_to_json(char *buf, size_t n, const TouchordSettings *s)
     snprintf(buf, n,
         "{\"key\":%s,\"octave\":%d,\"extension_count\":%d,"
         "\"inversion\":%d,\"velocity\":%d,\"mode\":%d,\"octave_count\":%d,"
-        "\"cutoff\":%d,\"channel\":%u}",
+        "\"cutoff\":%d,\"channel\":%u,\"output_mode\":%u,\"debug_overlay\":%u}",
         keybuf, s->octave, s->extension_count,
         s->inversion, s->velocity, s->mode, s->octave_count,
-        s->cutoff, s->channel);
+        s->cutoff, s->channel, s->output_mode, s->debug_overlay ? 1 : 0);
 }
 
 static void usb_write_json(const char *s)
@@ -99,6 +106,31 @@ static void usb_write_json(const char *s)
 
 void process_cmd(const char *line)
 {
+    if (!strcmp(line, "tone"))
+    {
+        char response[32];
+
+        snprintf(response, sizeof response, "{\"tone\":%d}", tc_synth_test_tone_enabled() ? 1 : 0);
+        tc_log(response);
+        return;
+    }
+
+    if (!strcmp(line, "tone on"))
+    {
+        tc_output_all_notes_off(tc_app.channel);
+        tc_synth_set_test_tone(true);
+        tc_log("{\"tone\":1}");
+        return;
+    }
+
+    if (!strcmp(line, "tone off"))
+    {
+        tc_output_all_notes_off(tc_app.channel);
+        tc_synth_set_test_tone(false);
+        tc_log("{\"tone\":0}");
+        return;
+    }
+
     if (!strcmp(line, "read"))
     {
         TouchordSettings local;
@@ -113,9 +145,18 @@ void process_cmd(const char *line)
     if (!strncmp(line, "write ", 6))
     {
         TouchordSettings temp = tc_app;
-        if (!touchord_settings_from_json(line + 6, &temp))
+        char json_text[1024];
+        size_t json_len = strnlen(line + 6, sizeof(json_text) - 1);
+
+        memcpy(json_text, line + 6, json_len);
+        json_text[json_len] = '\0';
+
+        if (!touchord_settings_from_json(json_text, &temp))
         {            
             tc_app = temp;
+            switch_midi_trs(tc_app.midi_type);
+            reload_custom_scales();
+            tc_output_all_notes_off(tc_app.channel);
 
             tc_log("{\"resp\":\"ok\"}");
         }

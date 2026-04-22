@@ -15,7 +15,7 @@ static const TouchordSettings tc_app_default = {
     DEFAULT_OCTAVE, DEFAULT_EXTENSIONS, DEFAULT_INVERSION, DEFAULT_VELOCITY, 
     TOUCHORD_COMPOSE, DEFAULT_OCTAVE_COUNT, 0,
     {0, 0, 0, 0, 0, 0}, {'\0'}, CHORD_DEFAULT,
-    DEFAULT_EXTENSIONS, MIDI_CHANNEL, MIDI_TRS_A,
+    DEFAULT_EXTENSIONS, MIDI_CHANNEL, MIDI_TRS_A, TOUCHORD_OUTPUT_BOTH, false,
 
     //Custom Scales
     {
@@ -53,6 +53,7 @@ extern TouchordMode tc_prev_mode;
  
 extern bool tc_running;
 extern bool tc_trigger_bootsel;
+extern bool tc_trigger_panic;
  
 extern TrillBar tc_bar;
 extern ssd1306_t tc_disp;
@@ -66,5 +67,11 @@ extern uint64_t tc_time_last_control;
 extern uint8_t tc_last_control_clicks;
 extern uint8_t tc_last_key;
 extern uint8_t tc_last_control;
+extern int8_t tc_debug_last_key_down;
+extern int8_t tc_debug_last_output_note;
+extern int8_t tc_debug_last_usb_midi_note;
+extern uint32_t tc_debug_key_down_count;
+extern uint32_t tc_debug_output_note_count;
+extern uint32_t tc_debug_usb_midi_note_count;
 
 #endif

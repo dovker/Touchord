@@ -1,6 +1,6 @@
 #include "Strum.h"
 #include "Globals.h"
-#include "IO/Midi.h"
+#include "IO/Output.h"
 #include "Notes/Note.h"
 #include "Rendering/Graphics.h"
 
@@ -23,7 +23,7 @@ void strum_start()
 
 void strum_end()
 {
-    send_midi_note(tc_app.channel, NOTE_OFF, lastNote, tc_app.velocity);
+    tc_output_note(tc_app.channel, NOTE_OFF, lastNote, tc_app.velocity);
     tc_app.chord_name[0] = '\0';
 }
 
@@ -118,20 +118,20 @@ void strum_trill_down(float pos, float size)
         uint8_t note = tc_app.chord[seg%tc_app.extension_count];
         uint8_t octave = seg / tc_app.extension_count;
         lastNote = note + octave * 12;
-        send_midi_note(tc_app.channel, NOTE_ON, lastNote, tc_app.velocity);
+        tc_output_note(tc_app.channel, NOTE_ON, lastNote, tc_app.velocity);
     }
     else if(tc_touch_state && seg != prevSegment)
     {
-        send_midi_note(tc_app.channel, NOTE_OFF, lastNote, tc_app.velocity);
+        tc_output_note(tc_app.channel, NOTE_OFF, lastNote, tc_app.velocity);
         uint8_t note = tc_app.chord[seg%tc_app.extension_count];
         uint8_t octave = seg / tc_app.extension_count;
         lastNote = note + octave * 12;
-        send_midi_note(tc_app.channel, NOTE_ON, lastNote, tc_app.velocity);
+        tc_output_note(tc_app.channel, NOTE_ON, lastNote, tc_app.velocity);
     }
     prevSegment = seg;
 }
 
 void strum_trill_up()
 {
-    send_midi_note(tc_app.channel, NOTE_OFF, lastNote, tc_app.velocity);
+    tc_output_note(tc_app.channel, NOTE_OFF, lastNote, tc_app.velocity);
 }

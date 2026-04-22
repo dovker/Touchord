@@ -7,6 +7,7 @@
 #include "ssd1306.h"
 #include "Globals.h"
 #include "Notes/Note.h"
+#include "tusb.h"
 #include <stdlib.h>
 
 static void draw_current_chord()
@@ -62,6 +63,53 @@ static void draw_int_center(int32_t num)
     uint32_t len = strlen(buf);
     uint8_t text_w = len * 6 - 1;
     ssd1306_draw_string(&tc_disp, 64 - text_w, 24, 2, buf);
+}
+
+static void draw_debug_overlay(void)
+{
+    char buf[24];
+    int x = 74;
+
+    if (!tc_app.debug_overlay) {
+        return;
+    }
+
+    snprintf(
+        buf,
+        sizeof(buf),
+        "K%d:%lu",
+        tc_debug_last_key_down,
+        (unsigned long)tc_debug_key_down_count
+    );
+    ssd1306_draw_string(&tc_disp, x, 8, 1, buf);
+
+    snprintf(
+        buf,
+        sizeof(buf),
+        "N%d:%lu",
+        tc_debug_last_output_note,
+        (unsigned long)tc_debug_output_note_count
+    );
+    ssd1306_draw_string(&tc_disp, x, 16, 1, buf);
+
+    snprintf(
+        buf,
+        sizeof(buf),
+        "M%d:%lu",
+        tc_debug_last_usb_midi_note,
+        (unsigned long)tc_debug_usb_midi_note_count
+    );
+    ssd1306_draw_string(&tc_disp, x, 24, 1, buf);
+
+    snprintf(
+        buf,
+        sizeof(buf),
+        "U%d:%d%d",
+        tc_app.output_mode,
+        tud_mounted() ? 1 : 0,
+        tud_midi_mounted() ? 1 : 0
+    );
+    ssd1306_draw_string(&tc_disp, x, 32, 1, buf);
 }
 
 #endif

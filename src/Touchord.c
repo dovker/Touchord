@@ -11,8 +11,11 @@
 #include "Helper.h"
 #include "Globals.h"
 #include "IO/Midi.h"
+#include "IO/Output.h"
 #include "Data/Parser.h"
 #include "Notes/Note.h"
+#include "Rendering/Graphics.h"
+#include "Synth/AmyEngine.h"
 
 #include "bsp/board.h"
 #include "tusb.h"
@@ -71,10 +74,12 @@ void poll_buttons()
         {
             tc_button_up(i);
         }
+#if ENABLE_BOOTSEL_BUTTON_CHORD
         if(!tc_control_states[0] && !tc_control_states[2] && !tc_control_states[4])
         {
             tc_trigger_bootsel = true;
         }
+#endif
         tc_control_states[i] = curr_state;
     }
 
@@ -83,6 +88,8 @@ void poll_buttons()
         bool curr_state = gpio_get(i + KEY_0);
         if(tc_key_states[i] && !curr_state)
         {
+            tc_debug_last_key_down = i;
+            tc_debug_key_down_count++;
             tc_key_down(i);
 
             tc_last_key = i;
@@ -144,7 +151,7 @@ void init_GPIO()
 
 void init_i2c()
 {
-    i2c_init(i2c0, 400000);
+    i2c_init(i2c1, 400000);
 
     gpio_set_function(PIN_SDA, GPIO_FUNC_I2C);
     gpio_set_function(PIN_SCL, GPIO_FUNC_I2C);
@@ -166,6 +173,9 @@ void select_mode(TouchordMode mode)
         case TOUCHORD_DRUM: drum_end(); break;
         case TOUCHORD_SETTINGS: settings_end(); break;
     }
+
+    tc_output_all_notes_off(tc_app.channel);
+
     switch(mode)
     {
         case TOUCHORD_COMPOSE:
@@ -199,41 +209,39 @@ void select_mode(TouchordMode mode)
         }
         break;
     }
+
+    tc_prev_mode = mode;
 }
 
 
-void io_task()
+static void update_ui(void)
 {   
-    sleep_ms(1000);
+    if(tc_app.mode != prevMode) 
+    { 
+        select_mode(tc_app.mode);
+        prevMode = tc_app.mode;
+    }
+
+    poll_trill_bar(&tc_bar);
+    
     ssd1306_clear(&tc_disp);
 
-    while(tc_running)
-    {
-        if(tc_trigger_bootsel)
-        {
-            tc_running = false;
-            ssd1306_clear(&tc_disp);
-            ssd1306_draw_string(&tc_disp, 10, 24, 2, "Firm Mode");
-            ssd1306_show(&tc_disp);
-            rom_reset_usb_boot(0, 0);
-            break;
-        }
+    tc_draw();
+    tc_update();
+    draw_debug_overlay();
+    
+    ssd1306_show(&tc_disp);
+}
 
-        if(tc_app.mode != prevMode) 
-        { 
-            select_mode(tc_app.mode);
-            prevMode = tc_app.mode;
-        }
-
-        poll_trill_bar(&tc_bar);
-        
-        ssd1306_clear(&tc_disp);
-
-        tc_draw();
-        tc_update();
-        
-        ssd1306_show(&tc_disp);
-    }
+static void enter_bootsel(void)
+{
+    tc_output_all_notes_off(tc_app.channel);
+    tc_running = false;
+    ssd1306_clear(&tc_disp);
+    ssd1306_draw_string(&tc_disp, 10, 24, 2, "Firm Mode");
+    ssd1306_show(&tc_disp);
+    sleep_ms(50);
+    rom_reset_usb_boot(0, 0);
 }
 
 void serial_poll(void)
@@ -267,8 +275,10 @@ int main()
     init_GPIO();
     sleep_ms(500);
     
+#if ENABLE_BOOTSEL_ON_STARTUP
     if(!gpio_get(CONTROL_0))
         rom_reset_usb_boot(0, 0);
+#endif
 
     tud_init(0);
     sleep_ms(500);
@@ -276,12 +286,12 @@ int main()
     init_i2c();
     setup_midi_trs(tc_app.midi_type);
 
-    tc_bar = trill_init(i2c0, TRILL_ADDR);
+    tc_bar = trill_init(i2c1, TRILL_ADDR);
     trill_set_auto_scan(&tc_bar, 1);
     trill_set_noise_threshold(&tc_bar, 255);
 
     tc_disp.external_vcc = false;
-    ssd1306_init(&tc_disp, 128, 64, 0x3C, i2c0);
+    ssd1306_init(&tc_disp, 128, 64, DISP_ADDR, i2c1);
     ssd1306_contrast(&tc_disp, 0xFF);
     ssd1306_clear(&tc_disp);
     ssd1306_draw_string(&tc_disp, 10, 24, 2, "Touchord");
@@ -289,17 +299,22 @@ int main()
     
     reload_custom_scales();
     compose_start();
+    tc_output_init();
+    multicore_launch_core1(tc_synth_audio_task);
 
-    multicore_launch_core1(io_task);
-
-    while (true) {
-        tud_task();
-        if (tud_midi_mounted()) 
-        {
-            poll_buttons();
+    while (tc_running) {
+        if (tc_trigger_panic) {
+            tc_output_all_notes_off(tc_app.channel);
+            tc_trigger_panic = false;
         }
+        if (tc_trigger_bootsel) {
+            enter_bootsel();
+            break;
+        }
+        tud_task();
+        poll_buttons();
+        update_ui();
         led_blinking_task();
-
         serial_poll();
     }
 }
@@ -307,22 +322,26 @@ int main()
 void tud_mount_cb(void)
 {
   blink_interval_ms = BLINK_MOUNTED;
+  tc_trigger_panic = true;
 }
 
 void tud_umount_cb(void)
 {
   blink_interval_ms = BLINK_NOT_MOUNTED;
+  tc_trigger_panic = true;
 }
 
 void tud_suspend_cb(bool remote_wakeup_en)
 {
   (void) remote_wakeup_en;
   blink_interval_ms = BLINK_SUSPENDED;
+  tc_trigger_panic = true;
 }
 
 void tud_resume_cb(void)
 {
   blink_interval_ms = BLINK_MOUNTED;
+  tc_trigger_panic = true;
 }
 
 void led_blinking_task(void)

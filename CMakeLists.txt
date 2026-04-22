@@ -23,7 +23,7 @@ if (EXISTS ${picoVscode})
     include(${picoVscode})
 endif()
 # ====================================================================================
-set(PICO_BOARD pico2 CACHE STRING "Board type")
+set(PICO_BOARD waveshare_rp2040_zero CACHE STRING "Board type")
 
 # Pull in Raspberry Pi Pico SDK (must be before project)
 include(pico_sdk_import.cmake)
@@ -35,10 +35,46 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(Touchord src/Touchord.c src/Globals.c src/usb_descriptors.c
-                        src/Modes/Compose.c src/Modes/Strum.c src/Modes/Settings.c src/Modes/Perform.c src/Modes/Omni.c src/Modes/Drum.c
-                        src/Notes/Note.c src/Rendering/Graphics.c src/IO/Midi.c src/Data/Parser.c
-                        src/thirdparty/tiny-json.c src/thirdparty/Fonts.c src/thirdparty/ssd1306.c)
+add_executable(Touchord
+                        src/Touchord.c
+                        src/Globals.c
+                        src/usb_descriptors.c
+                        src/Modes/Compose.c
+                        src/Modes/Strum.c
+                        src/Modes/Settings.c
+                        src/Modes/Perform.c
+                        src/Modes/Omni.c
+                        src/Modes/Drum.c
+                        src/Notes/Note.c
+                        src/Rendering/Graphics.c
+                        src/IO/Midi.c
+                        src/IO/Output.c
+                        src/Audio/Pcm5102Audio.c
+                        src/Synth/AmyEngine.c
+                        src/Synth/AmyPlatformStubs.c
+                        src/Data/Parser.c
+                        src/thirdparty/tiny-json.c
+                        src/thirdparty/Fonts.c
+                        src/thirdparty/ssd1306.c
+                        amy/src/algorithms.c
+                        amy/src/amy.c
+                        amy/src/api.c
+                        amy/src/custom.c
+                        amy/src/delay.c
+                        amy/src/envelope.c
+                        amy/src/filters.c
+                        amy/src/instrument.c
+                        amy/src/interp_partials.c
+    amy/src/log2_exp2.c
+    amy/src/midi_mappings.c
+    amy/src/oscillators.c
+    amy/src/parse.c
+                        amy/src/patches.c
+                        amy/src/pcm.c
+                        amy/src/sequencer.c
+                        amy/src/transfer.c)
+
+pico_generate_pio_header(Touchord ${CMAKE_CURRENT_LIST_DIR}/src/Audio/tc_audio_i2s.pio)
                         
                         
 pico_set_program_name(Touchord "Touchord")
@@ -59,14 +95,23 @@ target_link_libraries(Touchord
 target_include_directories(Touchord PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}/src
         ${CMAKE_CURRENT_LIST_DIR}/src/thirdparty
+        ${CMAKE_CURRENT_LIST_DIR}/amy/src
+)
+
+target_compile_definitions(Touchord PRIVATE
+        PICO_ON_DEVICE=1
+        AMY_NO_MINIAUDIO=1
 )
 
 # Add any user requested libraries
 target_link_libraries(Touchord 
         hardware_spi
         hardware_i2c
+        hardware_dma
+        hardware_pio
+        hardware_clocks
+        m
         
         )
 
 pico_add_extra_outputs(Touchord)
-

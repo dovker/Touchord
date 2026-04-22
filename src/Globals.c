@@ -17,6 +17,7 @@ TouchordMode tc_prev_mode = TOUCHORD_COMPOSE;
 
 bool tc_running = true;
 bool tc_trigger_bootsel = false;
+bool tc_trigger_panic = false;
 
 TrillBar tc_bar;
 ssd1306_t tc_disp;
@@ -30,3 +31,9 @@ uint64_t tc_time_last_control = 0;
 uint8_t tc_last_control_clicks = 0;
 uint8_t tc_last_key = 0;
 uint8_t tc_last_control = 0;
+int8_t tc_debug_last_key_down = -1;
+int8_t tc_debug_last_output_note = -1;
+int8_t tc_debug_last_usb_midi_note = -1;
+uint32_t tc_debug_key_down_count = 0;
+uint32_t tc_debug_output_note_count = 0;
+uint32_t tc_debug_usb_midi_note_count = 0;

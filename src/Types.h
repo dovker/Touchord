@@ -61,6 +61,13 @@ typedef enum
     MIDI_TRS_B
 } MidiType;
 
+typedef enum
+{
+    TOUCHORD_OUTPUT_EXTERNAL = 0,
+    TOUCHORD_OUTPUT_INTERNAL,
+    TOUCHORD_OUTPUT_BOTH
+} TouchordOutputMode;
+
 typedef enum 
 {
     SCALE_NULL = 0,
@@ -113,6 +120,8 @@ typedef struct
     uint8_t prev_extension;
     uint8_t channel;
     MidiType midi_type;
+    TouchordOutputMode output_mode;
+    bool debug_overlay;
 
     ChordDegree custom_scale_chords[4][SCALE_LEN];
     uint8_t custom_scale_intervals[4][SCALE_LEN];

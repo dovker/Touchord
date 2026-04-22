@@ -1,6 +1,6 @@
 #include "Omni.h"
 #include "Globals.h"
-#include "IO/Midi.h"
+#include "IO/Output.h"
 #include "Notes/Note.h"
 #include "Rendering/Graphics.h"
 
@@ -28,10 +28,10 @@ uint8_t playingRoot = 0;
 uint8_t playingFifth = 0;
 void omni_end()
 {
-    send_midi_note(tc_app.channel, NOTE_OFF, omniLastNote1, tc_app.velocity);
-    send_midi_note(tc_app.channel, NOTE_OFF, omniLastNote2, tc_app.velocity);
-    send_midi_note(tc_app.channel, NOTE_OFF, playingRoot, tc_app.velocity);
-    send_midi_note(tc_app.channel, NOTE_OFF, playingFifth, tc_app.velocity);
+    tc_output_note(tc_app.channel, NOTE_OFF, omniLastNote1, tc_app.velocity);
+    tc_output_note(tc_app.channel, NOTE_OFF, omniLastNote2, tc_app.velocity);
+    tc_output_note(tc_app.channel, NOTE_OFF, playingRoot, tc_app.velocity);
+    tc_output_note(tc_app.channel, NOTE_OFF, playingFifth, tc_app.velocity);
     tc_app.chord_name[0] = '\0';
     tc_app.extension_count = DEFAULT_EXTENSIONS;
 }
@@ -53,8 +53,8 @@ void omni_update()
 
 void omni_key_down(uint8_t key)
 {
-    send_midi_note(tc_app.channel, NOTE_OFF, playingRoot, tc_app.velocity);
-    send_midi_note(tc_app.channel, NOTE_OFF, playingFifth, tc_app.velocity);
+    tc_output_note(tc_app.channel, NOTE_OFF, playingRoot, tc_app.velocity);
+    tc_output_note(tc_app.channel, NOTE_OFF, playingFifth, tc_app.velocity);
 
     build_chord(tc_app.key[tc_app.current_key], tc_app.octave, key, tc_app.degree, 
                 tc_app.extension_count, tc_app.inversion, tc_app.chord, tc_app.chord_name);
@@ -62,14 +62,14 @@ void omni_key_down(uint8_t key)
     playingRoot = tc_app.chord[0] - 12;
     playingFifth = tc_app.chord[1] - 12;
 
-    send_midi_note(tc_app.channel, NOTE_ON, playingRoot, tc_app.velocity);
-    send_midi_note(tc_app.channel, NOTE_ON, playingFifth, tc_app.velocity);
+    tc_output_note(tc_app.channel, NOTE_ON, playingRoot, tc_app.velocity);
+    tc_output_note(tc_app.channel, NOTE_ON, playingFifth, tc_app.velocity);
 }
 
 void omni_key_up(uint8_t key)
 {
-    send_midi_note(tc_app.channel, NOTE_OFF, playingRoot, tc_app.velocity);
-    send_midi_note(tc_app.channel, NOTE_OFF, playingFifth, tc_app.velocity);
+    tc_output_note(tc_app.channel, NOTE_OFF, playingRoot, tc_app.velocity);
+    tc_output_note(tc_app.channel, NOTE_OFF, playingFifth, tc_app.velocity);
 }
 
 void omni_key_up_independent(uint8_t key)
@@ -126,39 +126,39 @@ void omni_trill_down(float pos, float size)
         uint8_t note = tc_app.chord[seg%tc_app.extension_count];
         uint8_t octave = seg / tc_app.extension_count;
         omniLastNote1 = note + octave * 12;
-        send_midi_note(tc_app.channel, NOTE_ON, omniLastNote1, tc_app.velocity);
+        tc_output_note(tc_app.channel, NOTE_ON, omniLastNote1, tc_app.velocity);
 
         note = tc_app.chord[(seg+1)%tc_app.extension_count];
         octave = seg / tc_app.extension_count;
         omniLastNote2 = note + octave * 12;
         if(omniLastNote1 > omniLastNote2) omniLastNote2 += 12;
-        send_midi_note(tc_app.channel, NOTE_ON, omniLastNote2, tc_app.velocity);
+        tc_output_note(tc_app.channel, NOTE_ON, omniLastNote2, tc_app.velocity);
     }
     else if(tc_touch_state && seg != omniPrevSegment)
     {
         uint8_t note, octave;
         if(omniLastNote2 != omniLastNote1)
         {
-            send_midi_note(tc_app.channel, NOTE_OFF, omniLastNote1, tc_app.velocity);
+            tc_output_note(tc_app.channel, NOTE_OFF, omniLastNote1, tc_app.velocity);
             note = tc_app.chord[seg%tc_app.extension_count];
             octave = seg / tc_app.extension_count;
             omniLastNote1 = note + octave * 12;
-            send_midi_note(tc_app.channel, NOTE_ON, omniLastNote1, tc_app.velocity);
+            tc_output_note(tc_app.channel, NOTE_ON, omniLastNote1, tc_app.velocity);
         }
         else omniLastNote1 = omniLastNote2;
 
-        send_midi_note(tc_app.channel, NOTE_OFF, omniLastNote2, tc_app.velocity);
+        tc_output_note(tc_app.channel, NOTE_OFF, omniLastNote2, tc_app.velocity);
         note = tc_app.chord[(seg+1)%tc_app.extension_count];
         octave = seg / tc_app.extension_count;
         omniLastNote2 = note + octave * 12;
         if(omniLastNote1 > omniLastNote2) omniLastNote2 += 12;
-        send_midi_note(tc_app.channel, NOTE_ON, omniLastNote2, tc_app.velocity);
+        tc_output_note(tc_app.channel, NOTE_ON, omniLastNote2, tc_app.velocity);
     }
     omniPrevSegment = seg;
 }
 
 void omni_trill_up()
 {
-    send_midi_note(tc_app.channel, NOTE_OFF, omniLastNote1, tc_app.velocity);
-    send_midi_note(tc_app.channel, NOTE_OFF, omniLastNote2, tc_app.velocity);
+    tc_output_note(tc_app.channel, NOTE_OFF, omniLastNote1, tc_app.velocity);
+    tc_output_note(tc_app.channel, NOTE_OFF, omniLastNote2, tc_app.velocity);
 }

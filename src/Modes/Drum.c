@@ -1,6 +1,6 @@
 #include "Drum.h"
 #include "Globals.h"
-#include "IO/Midi.h"
+#include "IO/Output.h"
 #include "Notes/Note.h"
 #include "Rendering/Graphics.h"
 
@@ -27,7 +27,7 @@ void drum_start()
 
 void drum_end()
 {
-    send_midi_note(tc_app.channel, NOTE_OFF, last_note, drum_velocity);
+    tc_output_note(tc_app.channel, NOTE_OFF, last_note, drum_velocity);
 }
 
 void drum_draw()
@@ -49,7 +49,7 @@ void drum_update()
 void drum_key_down(uint8_t key)
 {
     uint8_t note = 12 * (tc_app.octave + 1) + key;
-    send_midi_note(tc_app.channel, NOTE_ON, note, drum_velocity);
+    tc_output_note(tc_app.channel, NOTE_ON, note, drum_velocity);
     last_note = note;
 }
 
@@ -60,7 +60,7 @@ void drum_key_up(uint8_t key)
 
 void drum_key_up_independent(uint8_t key)
 {
-    send_midi_note(tc_app.channel, NOTE_OFF, 12 * (tc_app.octave + 1) + key, 0);
+    tc_output_note(tc_app.channel, NOTE_OFF, 12 * (tc_app.octave + 1) + key, 0);
     last_note = -1;
 }
 

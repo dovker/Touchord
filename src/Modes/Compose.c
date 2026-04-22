@@ -1,6 +1,6 @@
 #include "Compose.h"
 #include "Globals.h"
-#include "IO/Midi.h"
+#include "IO/Output.h"
 #include "Notes/Note.h"
 #include "Rendering/Graphics.h"
 
@@ -29,7 +29,7 @@ void compose_start()
 
 void compose_end()
 {
-    send_midi_chord(tc_app.channel, NOTE_OFF, tc_app.chord, compose_last_extension, tc_app.velocity);
+    tc_output_chord(tc_app.channel, NOTE_OFF, tc_app.chord, compose_last_extension, tc_app.velocity);
     tc_app.chord_name[0] = '\0';
 }
 
@@ -51,10 +51,10 @@ void compose_update()
 void compose_key_down(uint8_t key)
 {
     compose_last_degree = key;
-    send_midi_chord(tc_app.channel, NOTE_OFF, tc_app.chord, compose_last_extension, tc_app.velocity);
+    tc_output_chord(tc_app.channel, NOTE_OFF, tc_app.chord, compose_last_extension, tc_app.velocity);
     build_chord(tc_app.key[tc_app.current_key], tc_app.octave, key, tc_app.degree, 
                 compose_extension, tc_app.inversion, tc_app.chord, tc_app.chord_name);
-    send_midi_chord(tc_app.channel, NOTE_ON, tc_app.chord, compose_extension, tc_app.velocity);
+    tc_output_chord(tc_app.channel, NOTE_ON, tc_app.chord, compose_extension, tc_app.velocity);
 
     compose_last_extension = compose_extension;
 }
@@ -64,7 +64,7 @@ void compose_key_up(uint8_t key)
     compose_last_degree = -1;
     if(!tc_app.compose_sustain)
     {
-        send_midi_chord(tc_app.channel, NOTE_OFF, tc_app.chord, compose_last_extension, tc_app.velocity);
+        tc_output_chord(tc_app.channel, NOTE_OFF, tc_app.chord, compose_last_extension, tc_app.velocity);
         
         build_chord(tc_app.key[tc_app.current_key], tc_app.octave, 0, CHORD_DEFAULT, 
                             0, tc_app.inversion, tc_app.chord, tc_app.chord_name);
@@ -181,9 +181,9 @@ void compose_trill_down(float pos, float size)
                 if(tc_app.chord[i] != prev_chord[i])
                 {
                     if(prev_chord[i] != 0)
-                        send_midi_note(tc_app.channel, NOTE_OFF, prev_chord[i], tc_app.velocity);
+                        tc_output_note(tc_app.channel, NOTE_OFF, prev_chord[i], tc_app.velocity);
                     if(tc_app.chord[i] != 0)
-                        send_midi_note(tc_app.channel, NOTE_ON, tc_app.chord[i], tc_app.velocity);
+                        tc_output_note(tc_app.channel, NOTE_ON, tc_app.chord[i], tc_app.velocity);
                 }
             }
             compose_last_extension = compose_extension;
