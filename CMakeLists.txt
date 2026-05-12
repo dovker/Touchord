@@ -37,6 +37,7 @@ pico_sdk_init()
 
 add_executable(Touchord
                         src/Touchord.c
+                        src/Debug.c
                         src/Globals.c
                         src/usb_descriptors.c
                         src/Modes/Compose.c
@@ -80,9 +81,10 @@ pico_generate_pio_header(Touchord ${CMAKE_CURRENT_LIST_DIR}/src/Audio/tc_audio_i
 pico_set_program_name(Touchord "Touchord")
 pico_set_program_version(Touchord "0.1")
 
-# Modify the below lines to enable/disable output over UART/USB
-pico_enable_stdio_uart(Touchord 1)
-pico_enable_stdio_usb(Touchord 1)
+# The firmware owns a custom TinyUSB CDC+MIDI descriptor. Keep Pico stdio off so
+# it does not compete with that descriptor or claim GPIO0/1 for UART debug.
+pico_enable_stdio_uart(Touchord 0)
+pico_enable_stdio_usb(Touchord 0)
 
 # Add the standard library to the build
 target_link_libraries(Touchord

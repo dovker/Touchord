@@ -1,10 +1,13 @@
 #include "Parser.h"
+#include "Debug.h"
 #include "Helper.h"
 #include "tiny-json.h"
+#include "Audio/Pcm5102Audio.h"
 #include "IO/Midi.h"
 #include "IO/Output.h"
 #include "Notes/Note.h"
 #include "Synth/AmyEngine.h"
+#include "tusb.h"
 
 int touchord_settings_from_json(char *text, TouchordSettings *s)
 {
@@ -100,12 +103,95 @@ static void usb_write_json(const char *s)
         tud_cdc_write_flush();
     }
 
-    tud_cdc_write_char('\n');
+    tud_cdc_write("\r\n", 2);
     tud_cdc_write_flush();
 }
 
 void process_cmd(const char *line)
 {
+    if (!strcmp(line, "status"))
+    {
+        TcAudioStatus audio;
+        char response[512];
+
+        tc_audio_get_status(&audio);
+
+        snprintf(response, sizeof response,
+            "{\"stage\":\"%s\",\"usb_inited\":%u,\"mounted\":%u,\"cdc\":%u,\"midi\":%u,\"synth_ready\":%u,\"tone\":%u,"
+            "\"audio_init\":%u,\"audio_started\":%u,\"audio_busy\":%u,\"audio_blocks\":%lu,\"audio_dma\":%lu,"
+            "\"audio_underruns\":%lu,\"audio_frames\":%lu,\"audio_min\":%d,\"audio_max\":%d,"
+            "\"left_lrclk\":%u,\"i2s_delay\":%u,\"pair_swap\":%u}",
+            tc_debug_get_stage(),
+            tud_inited() ? 1u : 0u,
+            tud_mounted() ? 1u : 0u,
+            tud_cdc_connected() ? 1u : 0u,
+            tud_midi_mounted() ? 1u : 0u,
+            tc_synth_is_ready() ? 1u : 0u,
+            tc_synth_test_tone_enabled() ? 1u : 0u,
+            audio.initialized ? 1u : 0u,
+            audio.started ? 1u : 0u,
+            audio.dma_busy ? 1u : 0u,
+            (unsigned long)audio.blocks_written,
+            (unsigned long)audio.dma_transfers,
+            (unsigned long)audio.underruns,
+            (unsigned long)audio.last_frame_count,
+            audio.last_min_sample,
+            audio.last_max_sample,
+            audio.left_lrclk_level,
+            audio.i2s_delay,
+            audio.pin_pair_swap);
+        tc_debug_write_line(response);
+        return;
+    }
+
+    if (!strcmp(line, "audio lrclk 0"))
+    {
+        tc_audio_set_left_lrclk_level(0);
+        tc_debug_write_line("{\"left_lrclk\":0}");
+        return;
+    }
+
+    if (!strcmp(line, "audio lrclk 1"))
+    {
+        tc_audio_set_left_lrclk_level(1);
+        tc_debug_write_line("{\"left_lrclk\":1}");
+        return;
+    }
+
+    if (!strcmp(line, "audio align i2s"))
+    {
+        tc_audio_set_i2s_delay(true);
+        tc_debug_write_line("{\"i2s_delay\":1}");
+        return;
+    }
+
+    if (!strcmp(line, "audio align lj"))
+    {
+        tc_audio_set_i2s_delay(false);
+        tc_debug_write_line("{\"i2s_delay\":0}");
+        return;
+    }
+
+    if (!strcmp(line, "audio pair normal"))
+    {
+        tc_audio_set_pin_pair_swap(false);
+        tc_debug_write_line("{\"pair_swap\":0}");
+        return;
+    }
+
+    if (!strcmp(line, "audio pair swap"))
+    {
+        tc_audio_set_pin_pair_swap(true);
+        tc_debug_write_line("{\"pair_swap\":1}");
+        return;
+    }
+
+    if (!strcmp(line, "log"))
+    {
+        tc_debug_dump_log();
+        return;
+    }
+
     if (!strcmp(line, "tone"))
     {
         char response[32];

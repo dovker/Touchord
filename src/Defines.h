@@ -19,39 +19,43 @@
 #define ENABLE_BOOTSEL_ON_STARTUP 0
 #define ENABLE_BOOTSEL_BUTTON_CHORD 0
 
-#define PIN_SDA  14
-#define PIN_SCL  15
+#define PIN_SDA  28 //14
+#define PIN_SCL  29 //15
 #define TRILL_ADDR 0x20
 #define DISP_ADDR 0x3C
 
-#define AUDIO_I2S_BCLK_PIN  27
-#define AUDIO_I2S_LRCLK_PIN 28
-#define AUDIO_I2S_DATA_PIN  29
-// The PIO program side-set drives BCLK on the base pin and LRCLK on base + 1.
+#define AUDIO_I2S_BCLK_PIN 15 //27
+#define AUDIO_I2S_DATA_PIN 26 //29
+#define AUDIO_I2S_LRCLK_PIN 27 //28
+
+// BCLK is independent; the current PIO path drives DATA and LRCLK as an adjacent pair.
 #define AUDIO_I2S_CLOCK_PIN_BASE AUDIO_I2S_BCLK_PIN
 #define AUDIO_I2S_DMA_CHANNEL 0
 #define AUDIO_I2S_PIO_INDEX   0
 #define AUDIO_I2S_SM          0
+#define AUDIO_I2S_LEFT_LRCLK_LEVEL 0
 #define AUDIO_TEST_TONE_DEFAULT   0
 #define AUDIO_TEST_TONE_FREQUENCY 440
 #define AUDIO_TEST_TONE_LEVEL     5000
 #define AUDIO_BOOT_TONE_BLOCKS    172
 
 #define LED_PIN 25
-#define CONTROL_0 1
-#define CONTROL_1 2
-#define CONTROL_2 3
-#define CONTROL_3 4
-#define CONTROL_4 5
-#define CONTROL_5 6
-#define NUM_CONTROLS 6
-#define KEY_0 7
-#define KEY_1 8
-#define KEY_2 9
-#define KEY_3 10
-#define KEY_4 11
-#define KEY_5 12
-#define KEY_6 13
+
+#define CONTROL_0 0//1
+#define CONTROL_1 8//2
+#define CONTROL_2 14//3
+//#define CONTROL_3 4
+//#define CONTROL_4 5
+//#define CONTROL_5 6
+#define NUM_CONTROLS 3 //6
+
+#define KEY_0 7 //7
+#define KEY_1 6 //8
+#define KEY_2 5 //9
+#define KEY_3 4 //10
+#define KEY_4 3 //11
+#define KEY_5 2 //12
+#define KEY_6 1 //13
 #define NUM_KEYS 7
 
 #define SCALE_LEN 7

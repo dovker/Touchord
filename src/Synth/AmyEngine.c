@@ -2,6 +2,7 @@
 
 #include "Globals.h"
 #include "Audio/Pcm5102Audio.h"
+#include "Debug.h"
 #include "Defines.h"
 #include "amy.h"
 #include "pico/util/queue.h"
@@ -269,6 +270,10 @@ static void tc_synth_start_engine(void)
     tc_synth_configure_touchord_synth();
 
     tc_synth_ready = true;
+    tc_debug_logf("synth engine ready voices=%u sample_rate=%u block=%u",
+        TC_SYNTH_VOICE_COUNT,
+        AMY_SAMPLE_RATE,
+        AMY_BLOCK_SIZE);
 }
 
 static void tc_synth_dispatch_event(const TcSynthEvent *event)
@@ -319,11 +324,15 @@ void tc_synth_init(void)
 void tc_synth_audio_task(void)
 {
     uint32_t boot_tone_blocks_remaining = AUDIO_BOOT_TONE_BLOCKS;
+    bool boot_tone_logged = false;
 
+    tc_debug_logf("audio task start");
     if (!tc_audio_init()) {
+        tc_debug_logf("audio task stopped: audio init failed");
         return;
     }
 
+    tc_debug_logf("audio init complete");
     tc_synth_start_engine();
 
     while (tc_running) {
@@ -337,17 +346,24 @@ void tc_synth_audio_task(void)
 
             tc_synth_dispatch_event(&panic_event);
             tc_synth_queue_overflowed = false;
+            tc_debug_logf("synth queue overflow: all notes off");
         }
         if (tc_synth_test_tone || boot_tone_blocks_remaining > 0) {
             tc_synth_fill_test_tone(AMY_BLOCK_SIZE);
             tc_audio_write_blocking(tc_synth_test_tone_buffer, AMY_BLOCK_SIZE);
             if (boot_tone_blocks_remaining > 0) {
                 boot_tone_blocks_remaining--;
+                if (boot_tone_blocks_remaining == 0 && !boot_tone_logged) {
+                    boot_tone_logged = true;
+                    tc_debug_logf("boot tone finished");
+                }
             }
         } else {
             tc_audio_write_blocking(amy_simple_fill_buffer(), AMY_BLOCK_SIZE);
         }
     }
+
+    tc_debug_logf("audio task stop");
 }
 
 bool tc_synth_is_ready(void)

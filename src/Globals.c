@@ -24,7 +24,24 @@ ssd1306_t tc_disp;
 
 bool tc_key_states[NUM_KEYS];
 bool tc_control_states[NUM_CONTROLS];
-bool tc_control_double_click[NUM_CONTROLS] = {false, true, true, false, false, false};
+bool tc_control_double_click[NUM_CONTROLS] = {
+    false,
+#if NUM_CONTROLS > 1
+    true,
+#endif
+#if NUM_CONTROLS > 2
+    true,
+#endif
+#if NUM_CONTROLS > 3
+    false,
+#endif
+#if NUM_CONTROLS > 4
+    false,
+#endif
+#if NUM_CONTROLS > 5
+    false,
+#endif
+};
 bool tc_touch_state = false;
 
 uint64_t tc_time_last_control = 0;

@@ -10,7 +10,7 @@
 static inline void tc_log(const char* str)
 {
     tud_cdc_n_write_str(0, str);
-    tud_cdc_n_write_char(0, '\n');
+    tud_cdc_n_write_str(0, "\r\n");
     tud_cdc_n_write_flush(0);
 }
 
