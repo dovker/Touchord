@@ -77,10 +77,6 @@ void drum_button_down(uint8_t button)
         break;
         default: break;
     }
-    if(button > 2)
-    {
-        tc_app.current_key = button - 3;
-    }
 }
 
 void drum_button_double_down(uint8_t button)

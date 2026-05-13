@@ -41,12 +41,14 @@
 
 #define LED_PIN 25
 
+#define ENCODER_A_PIN 12
+#define ENCODER_B_PIN 13
+#define ENCODER_TRANSITIONS_PER_STEP 1
+#define ENCODER_STEP_DEBOUNCE_US 4000
+
 #define CONTROL_0 0//1
 #define CONTROL_1 8//2
 #define CONTROL_2 14//3
-//#define CONTROL_3 4
-//#define CONTROL_4 5
-//#define CONTROL_5 6
 #define NUM_CONTROLS 3 //6
 
 #define KEY_0 7 //7
@@ -72,5 +74,6 @@
 #define TC_SYNTH_EVENT_QUEUE_DEPTH 256
 #define TC_SYNTH_VOICE_COUNT       4
 #define TC_SYNTH_PATCH_NUMBER      1
+#define ENABLE_INTERNAL_SYNTH_CC_PITCH 0
 
 #endif

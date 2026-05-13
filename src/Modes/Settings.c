@@ -88,10 +88,10 @@ UINode tree[MAX_UI_NODES] = {
     // 1-6: First Page
     {"Modes", UI_SUBMENU, 2, 7,  NULL, {0}, NULL},
     {"MIDI", UI_SUBMENU, 4, 17,  NULL, {0}, NULL},
-    {"Customize", UI_SUBMENU, 7, 21,  NULL, {0}, NULL},
+    {"Customize", UI_SUBMENU, 5, 21,  NULL, {0}, NULL},
     {"Load Preset", UI_INT, 8, 0, NULL, {0}, NULL},
     {"Save Preset", UI_INT, 8, 0, NULL, {0}, NULL},
-    {"Firmware", UI_SUBMENU, 3, 42, NULL, {0}, NULL},
+    {"Firmware", UI_SUBMENU, 3, 36, NULL, {0}, NULL},
     
     // 7-8: Modes Settings
     {"Compose", UI_SUBMENU, 2, 9, NULL, {0}, NULL},
@@ -115,40 +115,31 @@ UINode tree[MAX_UI_NODES] = {
     {"Velocity", UI_INT, 128, 0, NULL, {.i_val=&tc_app.velocity}, NULL},
     {"Output", UI_ENUM, 3, 0, trigger_output_mode, {.en_val=(uint8_t*)&tc_app.output_mode}, output_sel},
 
-    // 21-23 Customize (Buttons)
-    {"Button 1", UI_SUBMENU, 2, 28, NULL, {0}, NULL},
-    {"Button 2", UI_SUBMENU, 2, 30, NULL, {0}, NULL},
-    {"Button 3", UI_SUBMENU, 2, 32, NULL, {0}, NULL},
-    //24-27 Customize (Custom Scales)
-    {"Custom 0", UI_SUBMENU, 2, 34, NULL, {0}, NULL},
-    {"Custom 1", UI_SUBMENU, 2, 36, NULL, {0}, NULL},
-    {"Custom 2", UI_SUBMENU, 2, 38, NULL, {0}, NULL},
-    {"Custom 3", UI_SUBMENU, 2, 40, NULL, {0}, NULL},
+    // 21-25 Customize
+    {"Key", UI_SUBMENU, 2, 26, NULL, {0}, NULL},
+    {"Custom 0", UI_SUBMENU, 2, 28, NULL, {0}, NULL},
+    {"Custom 1", UI_SUBMENU, 2, 30, NULL, {0}, NULL},
+    {"Custom 2", UI_SUBMENU, 2, 32, NULL, {0}, NULL},
+    {"Custom 3", UI_SUBMENU, 2, 34, NULL, {0}, NULL},
 
-    // 28-29 Customize.B1
-    {"Root", UI_ENUM, 17, 0, NULL, {.en_val = &tc_app.key[0].root}, root_names},
-    {"Scale", UI_ENUM, 12, 1, NULL, {.en_val = &tc_app.key[0].quality}, scale_sel},
-    // 30-31 Customize.B2
-    {"Root", UI_ENUM, 17, 0, NULL, {.en_val = &tc_app.key[1].root}, root_names},
-    {"Scale", UI_ENUM, 12, 1, NULL, {.en_val = &tc_app.key[1].quality}, scale_sel},
-    // 32-33 Customize.B3
-    {"Root", UI_ENUM, 17, 0, NULL, {.en_val = &tc_app.key[2].root}, root_names},
-    {"Scale", UI_ENUM, 12, 1, NULL, {.en_val = &tc_app.key[2].quality}, scale_sel},
+    // 26-27 Customize.Key
+    {"Root", UI_ENUM, 17, 0, NULL, {.en_val = &tc_app.key.root}, root_names},
+    {"Scale", UI_ENUM, 12, 1, NULL, {.en_val = &tc_app.key.quality}, scale_sel},
 
-    // 34-35 Customize.C0
+    // 28-29 Customize.C0
     {"Intervals", UI_PER_BUTTON_INT, 12, 0, trigger_custom_scale, {.i_val = tc_app.custom_scale_intervals[0]}, NULL},
     {"Degrees", UI_PER_BUTTON_ENUM, 7, 1, trigger_custom_scale, {.en_val = tc_app.custom_scale_chords[0]}, degree_sel},
-    // 36-37 
+    // 30-31 Customize.C1
     {"Intervals", UI_PER_BUTTON_INT, 12, 0, trigger_custom_scale, {.i_val = tc_app.custom_scale_intervals[1]}, NULL},
     {"Degrees", UI_PER_BUTTON_ENUM, 7, 1, trigger_custom_scale, {.en_val = tc_app.custom_scale_chords[1]}, degree_sel},
-    // 38-39
+    // 32-33 Customize.C2
     {"Intervals", UI_PER_BUTTON_INT, 12, 0, trigger_custom_scale, {.i_val = tc_app.custom_scale_intervals[2]}, NULL},
     {"Degrees", UI_PER_BUTTON_ENUM, 7, 1, trigger_custom_scale, {.en_val = tc_app.custom_scale_chords[2]}, degree_sel},
-    // 40-41 Customize.C3
+    // 34-35 Customize.C3
     {"Intervals", UI_PER_BUTTON_INT, 12, 0, trigger_custom_scale, {.i_val = tc_app.custom_scale_intervals[3]}, NULL},
     {"Degrees", UI_PER_BUTTON_ENUM, 7, 1, trigger_custom_scale, {.en_val = tc_app.custom_scale_chords[3]}, degree_sel},
 
-    // 42-44: Firmware
+    // 36-38: Firmware
     {"Reset Factory", UI_TRIGGER, 0, 0, trigger_factory_reset, {0}, NULL},
     {"Firmware Update", UI_TRIGGER, 0, 0, trigger_boot_sel, {0}, NULL},
     {"Debug OSD", UI_TOGGLE, 2, 0, NULL, {.toggle=&tc_app.debug_overlay}, on_off_sel},
@@ -176,7 +167,7 @@ void settings_end()
     
 }
 
-int settings_current_key = 0;
+int settings_selected_degree = 0;
 void settings_draw()
 {
     ssd1306_draw_line(&tc_disp, 0, 7, 128, 7);
@@ -212,14 +203,14 @@ void settings_draw()
                 draw_string_center(cn->opts[*cn->data.toggle]);
         break;
         case UI_PER_BUTTON_ENUM:
-            draw_string_int_centered("Selected Key: ", settings_current_key, 7);
+            draw_string_int_centered("Selected Degree: ", settings_selected_degree + 1, 7);
             if(cn->data.en_val)
-                draw_string_center(cn->opts[cn->data.en_val[settings_current_key]]);
+                draw_string_center(cn->opts[cn->data.en_val[settings_selected_degree]]);
         break;
         case UI_PER_BUTTON_INT:
-            draw_string_int_centered("Selected Key: ", settings_current_key, 7);
+            draw_string_int_centered("Selected Degree: ", settings_selected_degree + 1, 7);
             if(cn->data.i_val)
-                draw_int_center(cn->data.i_val[settings_current_key]);
+                draw_int_center(cn->data.i_val[settings_selected_degree]);
         break;
     }
 }
@@ -231,7 +222,7 @@ void settings_update()
 
 void settings_key_down(uint8_t key)
 {
-    settings_current_key = key;
+    settings_selected_degree = key;
 }
 
 void settings_key_up(uint8_t key)
@@ -267,9 +258,7 @@ void settings_button_down(uint8_t button)
                 pop();
             }
         break;
-        case 3: tc_app.current_key = 0; break;
-        case 4: tc_app.current_key = 1; break;
-        case 5: tc_app.current_key = 2; break;
+        default: break;
     }
 }
 
@@ -312,11 +301,11 @@ void settings_trill_down(float pos, float size)
                 break;
                 case UI_PER_BUTTON_ENUM:
                     if(cn->data.en_val)
-                        cn->data.en_val[settings_current_key] = clamp(cn->data.en_val[settings_current_key] - delta, cn->first_child, cn->n_child-1);
+                        cn->data.en_val[settings_selected_degree] = clamp(cn->data.en_val[settings_selected_degree] - delta, cn->first_child, cn->n_child-1);
                 break;
                 case UI_PER_BUTTON_INT:
                     if(cn->data.i_val)
-                        cn->data.i_val[settings_current_key] = clamp(cn->data.i_val[settings_current_key] - delta, cn->first_child, cn->n_child-1);
+                        cn->data.i_val[settings_selected_degree] = clamp(cn->data.i_val[settings_selected_degree] - delta, cn->first_child, cn->n_child-1);
                 break;
             }
         }

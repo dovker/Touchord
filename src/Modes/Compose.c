@@ -9,6 +9,7 @@
 uint8_t compose_last_degree = -1;
 uint8_t compose_last_extension;
 uint8_t compose_extension;
+static int compose_test_value = 50;
 
 void compose_start()
 {
@@ -36,6 +37,7 @@ void compose_end()
 void compose_draw()
 {
     draw_current_chord();
+    draw_string_int_centered("Enc: ", compose_test_value, 40);
 
     ssd1306_draw_line(&tc_disp, 0, 60, 30, 60);
     ssd1306_draw_string_with_font(&tc_disp, 37, 54, 2, font_3x6, "Compose");
@@ -52,7 +54,7 @@ void compose_key_down(uint8_t key)
 {
     compose_last_degree = key;
     tc_output_chord(tc_app.channel, NOTE_OFF, tc_app.chord, compose_last_extension, tc_app.velocity);
-    build_chord(tc_app.key[tc_app.current_key], tc_app.octave, key, tc_app.degree, 
+    build_chord(tc_app.key, tc_app.octave, key, tc_app.degree, 
                 compose_extension, tc_app.inversion, tc_app.chord, tc_app.chord_name);
     tc_output_chord(tc_app.channel, NOTE_ON, tc_app.chord, compose_extension, tc_app.velocity);
 
@@ -66,7 +68,7 @@ void compose_key_up(uint8_t key)
     {
         tc_output_chord(tc_app.channel, NOTE_OFF, tc_app.chord, compose_last_extension, tc_app.velocity);
         
-        build_chord(tc_app.key[tc_app.current_key], tc_app.octave, 0, CHORD_DEFAULT, 
+        build_chord(tc_app.key, tc_app.octave, 0, CHORD_DEFAULT, 
                             0, tc_app.inversion, tc_app.chord, tc_app.chord_name);
         tc_app.chord_name[0] = '\0';
     }
@@ -89,10 +91,6 @@ void compose_button_down(uint8_t button)
         if(tc_app.octave < 7) tc_app.octave++;
         break;
         default: break;
-    }
-    if(button > 2)
-    {
-        tc_app.current_key = button - 3;
     }
 }
 
@@ -173,8 +171,8 @@ void compose_trill_down(float pos, float size)
         {
             uint8_t prev_chord[6];
             memcpy(prev_chord, tc_app.chord, 6);
-            build_chord(tc_app.key[tc_app.current_key], tc_app.octave, compose_last_degree, tc_app.degree, 
-                        compose_extension, tc_app.inversion, tc_app.chord, tc_app.chord_name);
+            build_chord(tc_app.key, tc_app.octave, compose_last_degree, tc_app.degree, 
+                            compose_extension, tc_app.inversion, tc_app.chord, tc_app.chord_name);
 
             for(int i = 0; i < MAX_CHORD; i++)
             {
@@ -197,4 +195,14 @@ void compose_trill_up()
     compose_last_extension = compose_extension;
     compose_extension = tc_app.extension_count;
     tc_app.degree = CHORD_DEFAULT;
+}
+
+void compose_adjust_test_value(int delta)
+{
+    compose_test_value += delta;
+    if (compose_test_value < 0) {
+        compose_test_value = 0;
+    } else if (compose_test_value > 100) {
+        compose_test_value = 100;
+    }
 }

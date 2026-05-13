@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "hardware/i2c.h"
+#include "hardware/sync.h"
 #include "pico/stdlib.h"
 #include "pico/binary_info.h"
 #include "pico/multicore.h"
@@ -84,6 +85,10 @@
 #error "ENABLE_BOOTSEL_BUTTON_CHORD requires at least 5 control buttons"
 #endif
 
+#if ENCODER_TRANSITIONS_PER_STEP < 1
+#error "ENCODER_TRANSITIONS_PER_STEP must be at least 1"
+#endif
+
 static const uint8_t tc_control_pins[NUM_CONTROLS] = {
     CONTROL_0,
 #if NUM_CONTROLS > 1
@@ -127,6 +132,18 @@ static const uint8_t tc_key_pins[NUM_KEYS] = {
 
 static bool tc_boot_display_ready = false;
 static bool tc_usb_stack_started = false;
+static uint8_t tc_encoder_prev_state = 0;
+static uint8_t tc_encoder_detent_state = 0;
+static int8_t tc_encoder_accumulator = 0;
+static volatile int16_t tc_encoder_pending_steps = 0;
+static uint32_t tc_encoder_last_step_us = 0;
+
+static const int8_t tc_encoder_transition_table[16] = {
+    0, -1, 1, 0,
+    1, 0, 0, -1,
+    -1, 0, 0, 1,
+    0, 1, -1, 0,
+};
 
 void led_blinking_task(void);
 static uint32_t blink_interval_ms = BLINK_NOT_MOUNTED;
@@ -177,6 +194,78 @@ static void log_pin_map(void)
 
     for (uint8_t i = 0; i < NUM_KEYS; ++i) {
         tc_debug_logf("key[%u]=gpio%u", i, tc_key_pins[i]);
+    }
+
+    tc_debug_logf("encoder a=gpio%u b=gpio%u", ENCODER_A_PIN, ENCODER_B_PIN);
+}
+
+static uint8_t read_encoder_state(void)
+{
+    return ((uint8_t)gpio_get(ENCODER_A_PIN) << 1) | (uint8_t)gpio_get(ENCODER_B_PIN);
+}
+
+static void queue_encoder_step(int8_t step)
+{
+    uint32_t now = time_us_32();
+
+    if ((uint32_t)(now - tc_encoder_last_step_us) < ENCODER_STEP_DEBOUNCE_US) {
+        return;
+    }
+
+    tc_encoder_pending_steps += step;
+    tc_encoder_last_step_us = now;
+}
+
+static void encoder_gpio_irq(uint gpio, uint32_t events)
+{
+    (void)gpio;
+    (void)events;
+
+    uint8_t state = read_encoder_state();
+    int8_t delta = tc_encoder_transition_table[(tc_encoder_prev_state << 2) | state];
+
+    tc_encoder_prev_state = state;
+    if (delta != 0) {
+        tc_encoder_accumulator += delta;
+        if (tc_encoder_accumulator > ENCODER_TRANSITIONS_PER_STEP) {
+            tc_encoder_accumulator = ENCODER_TRANSITIONS_PER_STEP;
+        } else if (tc_encoder_accumulator < -ENCODER_TRANSITIONS_PER_STEP) {
+            tc_encoder_accumulator = -ENCODER_TRANSITIONS_PER_STEP;
+        }
+    }
+
+    if (state != tc_encoder_detent_state) {
+        return;
+    }
+
+    if (tc_encoder_accumulator >= ENCODER_TRANSITIONS_PER_STEP) {
+        queue_encoder_step(1);
+    } else if (tc_encoder_accumulator <= -ENCODER_TRANSITIONS_PER_STEP) {
+        queue_encoder_step(-1);
+    }
+
+    tc_encoder_accumulator = 0;
+}
+
+static void poll_encoder(void)
+{
+    uint32_t irq_state = save_and_disable_interrupts();
+    int16_t steps = tc_encoder_pending_steps;
+    tc_encoder_pending_steps = 0;
+    restore_interrupts(irq_state);
+
+    if (tc_app.mode != TOUCHORD_COMPOSE) {
+        return;
+    }
+
+    while (steps > 0) {
+        compose_adjust_test_value(1);
+        steps--;
+    }
+
+    while (steps < 0) {
+        compose_adjust_test_value(-1);
+        steps++;
     }
 }
 
@@ -255,6 +344,7 @@ void poll_buttons()
         }
         tc_key_states[i] = curr_state;
     }
+    poll_encoder();
     sleep_ms(10);
 }
 
@@ -294,6 +384,29 @@ void init_GPIO()
         gpio_pull_up(tc_key_pins[i]);
         tc_key_states[i] = true;
     }
+
+    gpio_init(ENCODER_A_PIN);
+    gpio_set_dir(ENCODER_A_PIN, GPIO_IN);
+    gpio_pull_up(ENCODER_A_PIN);
+
+    gpio_init(ENCODER_B_PIN);
+    gpio_set_dir(ENCODER_B_PIN, GPIO_IN);
+    gpio_pull_up(ENCODER_B_PIN);
+
+    tc_encoder_prev_state = read_encoder_state();
+    tc_encoder_detent_state = tc_encoder_prev_state;
+    tc_encoder_accumulator = 0;
+    tc_encoder_pending_steps = 0;
+    tc_encoder_last_step_us = 0;
+
+    gpio_set_irq_enabled_with_callback(ENCODER_A_PIN,
+        GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL,
+        true,
+        &encoder_gpio_irq);
+    gpio_set_irq_enabled(ENCODER_B_PIN,
+        GPIO_IRQ_EDGE_RISE | GPIO_IRQ_EDGE_FALL,
+        true);
+
     gpio_init(LED_PIN);
     gpio_set_dir(LED_PIN, GPIO_OUT);
 }

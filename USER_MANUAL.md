@@ -59,18 +59,17 @@ If you want standalone synth playback:
 Touchord has:
 
 - `7 chord keys`
-- `6 control buttons`
+- `3 control buttons`
 - `1 Trill touch bar`
 - `1 OLED display`
 
 ### Control button layout
 
-The firmware treats the six control buttons as:
+The firmware treats the three control buttons as:
 
 - `Button 1`: mode advance or settings exit, depending on mode
 - `Button 2`: usually octave down or back
 - `Button 3`: usually octave up or enter/apply
-- `Buttons 4-6`: select one of the three stored key/scale slots
 
 ### Mode order
 
@@ -128,7 +127,6 @@ Controls:
 - `Button 1`: go to `Perform`
 - `Button 2`: octave down
 - `Button 3`: octave up
-- `Buttons 4-6`: choose stored key slot 1-3
 
 Trill behavior:
 
@@ -152,15 +150,14 @@ Controls:
 - `Button 1`: go to `Strum`
 - `Button 2`: octave down
 - `Button 3`: octave up
-- `Buttons 4-6`: choose stored key slot 1-3
 
-Important current limitation:
+Important current behavior:
 
-- the built-in synth currently plays the notes in Perform mode
-- the Trill bar CC gestures are still most useful for external MIDI devices
-- the internal AMY path does not yet map those CCs to synth parameters such as filter cutoff or modulation
+- the built-in synth now responds to Perform-mode CC gestures
+- touch position drives the internal filter cutoff
+- touch size drives filter modulation depth on the internal AMY path
 
-In practice, Perform mode still works in `Internal`, but its expressiveness is strongest in `External` or `Both`.
+In practice, Perform mode is expressive in `Internal`, `External`, and `Both`, though external synths will still interpret those CCs according to their own patches.
 
 ## Strum Mode
 
@@ -179,7 +176,6 @@ Controls:
 - `Button 3`: octave up
 - double-click `Button 2`: reduce chord extension count
 - double-click `Button 3`: increase chord extension count
-- `Buttons 4-6`: choose stored key slot 1-3
 
 This is one of the best modes for the internal synth because the note stream is simple and immediate.
 
@@ -200,7 +196,6 @@ Controls:
 - `Button 3`: octave up
 - double-click `Button 2`: decrease octave span
 - double-click `Button 3`: increase octave span
-- `Buttons 4-6`: choose stored key slot 1-3
 
 This mode works well with the internal synth because it combines a drone-like base with moving melodic notes.
 
@@ -219,7 +214,6 @@ Controls:
 - `Button 1`: go to `Settings`
 - `Button 2`: octave down
 - `Button 3`: octave up
-- `Buttons 4-6`: choose stored key slot 1-3
 
 Important limitation:
 
@@ -235,7 +229,7 @@ Controls:
 - `Button 1`: leave Settings and return to `Compose`
 - `Button 2`: go back one menu level
 - `Button 3`: enter the selected item, or apply the current value
-- chord keys: select which key slot or custom-scale slot is being edited, where relevant
+- chord keys: select which scale degree is being edited in custom-scale menus
 - Trill bar: scroll through menu items or adjust values
 
 Main sections:
@@ -365,7 +359,7 @@ That is expected in the current firmware. Drum mode is external-only right now.
 
 ### Perform mode plays notes, but the touch bar does not change the internal sound much
 
-That is also expected in the current firmware. The note path is integrated, but the internal synth does not yet use the Perform CC messages for audible parameter changes.
+That is no longer expected after the current AMY update. In `Internal` or `Both`, the touch bar should now open and close the built-in filter and add filter modulation as the size CC rises.
 
 ### Notes seem stuck
 

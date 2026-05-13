@@ -9,6 +9,41 @@
 #include "Synth/AmyEngine.h"
 #include "tusb.h"
 
+static bool parse_root_name(const char *name, Note *note)
+{
+    static const struct {
+        const char *name;
+        Note note;
+    } note_map[] = {
+        {"C", NOTE_C},
+        {"C#", NOTE_C_SHARP},
+        {"Db", NOTE_D_FLAT},
+        {"D", NOTE_D},
+        {"D#", NOTE_D_SHARP},
+        {"Eb", NOTE_E_FLAT},
+        {"E", NOTE_E},
+        {"F", NOTE_F},
+        {"F#", NOTE_F_SHARP},
+        {"Gb", NOTE_G_FLAT},
+        {"G", NOTE_G},
+        {"G#", NOTE_G_SHARP},
+        {"Ab", NOTE_A_FLAT},
+        {"A", NOTE_A},
+        {"A#", NOTE_A_SHARP},
+        {"Bb", NOTE_B_FLAT},
+        {"B", NOTE_B},
+    };
+
+    for (size_t i = 0; i < sizeof note_map / sizeof *note_map; ++i) {
+        if (!strcmp(name, note_map[i].name)) {
+            *note = note_map[i].note;
+            return true;
+        }
+    }
+
+    return false;
+}
+
 int touchord_settings_from_json(char *text, TouchordSettings *s)
 {
     enum { MAX_FIELDS = 64 };
@@ -36,26 +71,31 @@ int touchord_settings_from_json(char *text, TouchordSettings *s)
             *ints[i].dst = (int)json_getInteger(j);
     }
 
-    /* key[]: iterate with child/sibling only */
-    json_t const *karr = json_getProperty(root, "key");
-    if (karr && json_getType(karr) == JSON_ARRAY) {
-        json_t const *el = json_getChild(karr);  /* first element */
-        int idx = 0;
-        while (el && idx < 3) {
-            if (json_getType(el) == JSON_OBJ) {
-                json_t const *r = json_getProperty(el, "Root");
-                json_t const *q = json_getProperty(el, "Quality");
-                if (r && json_getType(r) == JSON_TEXT) {
-                    // strncpy(s->key[idx].root, json_getValue(r),
-                    //         sizeof s->key[idx].root - 1);
-                    // s->key[idx].root[sizeof s->key[idx].root - 1] = '\0';
-                }
-                if (q && json_getType(q) == JSON_INTEGER) {
-                    s->key[idx].quality = (ScaleType)json_getInteger(q);
+    json_t const *jkey = json_getProperty(root, "key");
+    if (jkey) {
+        json_t const *key_obj = NULL;
+
+        if (json_getType(jkey) == JSON_OBJ) {
+            key_obj = jkey;
+        } else if (json_getType(jkey) == JSON_ARRAY) {
+            // Backward compatibility with the old three-slot key array.
+            key_obj = json_getChild(jkey);
+        }
+
+        if (key_obj && json_getType(key_obj) == JSON_OBJ) {
+            json_t const *r = json_getProperty(key_obj, "Root");
+            json_t const *q = json_getProperty(key_obj, "Quality");
+
+            if (r && json_getType(r) == JSON_TEXT) {
+                Note parsed_root;
+                if (parse_root_name(json_getValue(r), &parsed_root)) {
+                    s->key.root = parsed_root;
                 }
             }
-            idx++;
-            el = json_getSibling(el);
+
+            if (q && json_getType(q) == JSON_INTEGER) {
+                s->key.quality = (ScaleType)json_getInteger(q);
+            }
         }
     }
 
@@ -65,14 +105,13 @@ int touchord_settings_from_json(char *text, TouchordSettings *s)
 
 void touchord_settings_to_json(char *buf, size_t n, const TouchordSettings *s)
 {
+    static const char* root_names[17] = {
+        "C", "C#", "Db", "D", "D#", "Eb", "E", "F", "F#", "Gb", "G", "G#", "Ab", "A", "A#", "Bb", "B"
+    };
     char keybuf[128]; 
     snprintf(keybuf, sizeof keybuf,
-             "[{\"Root\":\"%s\",\"Quality\":\"%d\"},"
-             "{\"Root\":\"%s\",\"Quality\":\"%d\"},"
-             "{\"Root\":\"%s\",\"Quality\":\"%d\"}]",
-             s->key[0].root, s->key[0].quality,
-             s->key[1].root, s->key[1].quality,
-             s->key[2].root, s->key[2].quality);
+             "{\"Root\":\"%s\",\"Quality\":%d}",
+             root_names[s->key.root], s->key.quality);
     
     snprintf(buf, n,
         "{\"key\":%s,\"octave\":%d,\"extension_count\":%d,"

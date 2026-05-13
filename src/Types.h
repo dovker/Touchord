@@ -102,8 +102,7 @@ typedef struct
 typedef struct 
 {
     uint32_t magic;
-    Scale key[3];
-    uint8_t current_key;
+    Scale key;
     uint8_t octave;
     uint8_t extension_count;
     uint8_t inversion;

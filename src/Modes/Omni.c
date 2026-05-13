@@ -56,7 +56,7 @@ void omni_key_down(uint8_t key)
     tc_output_note(tc_app.channel, NOTE_OFF, playingRoot, tc_app.velocity);
     tc_output_note(tc_app.channel, NOTE_OFF, playingFifth, tc_app.velocity);
 
-    build_chord(tc_app.key[tc_app.current_key], tc_app.octave, key, tc_app.degree, 
+    build_chord(tc_app.key, tc_app.octave, key, tc_app.degree, 
                 tc_app.extension_count, tc_app.inversion, tc_app.chord, tc_app.chord_name);
 
     playingRoot = tc_app.chord[0] - 12;
@@ -88,9 +88,7 @@ void omni_button_down(uint8_t button)
         case 2: 
         if(tc_app.octave < 7) tc_app.octave++;
         break;
-        case 3: tc_app.current_key = 0; break;
-        case 4: tc_app.current_key = 1; break;
-        case 5: tc_app.current_key = 2; break;
+        default: break;
     }
 }
 void omni_button_double_down(uint8_t button)

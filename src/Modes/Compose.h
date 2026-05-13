@@ -17,5 +17,6 @@ void compose_button_double_down(uint8_t button);
 void compose_button_up(uint8_t button);
 void compose_trill_down(float pos, float size);
 void compose_trill_up();
+void compose_adjust_test_value(int delta);
 
 #endif

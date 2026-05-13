@@ -42,7 +42,7 @@ flowchart LR
 
 Touchord has four main input and feedback zones:
 
-- `6 control buttons`
+- `3 control buttons`
 - `7 chord keys`
 - `1 Trill touch bar`
 - `1 OLED display`
@@ -50,7 +50,7 @@ Touchord has four main input and feedback zones:
 Here is the logical layout used in this manual:
 
 ```text
-Control Buttons:   [B1] [B2] [B3] [B4] [B5] [B6]
+Control Buttons:   [B1] [B2] [B3]
 
 Trill Bar:         [-------------------------------------]
 
@@ -63,14 +63,13 @@ This is a logical diagram, not a mechanical drawing. If your enclosure differs, 
 
 ### Control buttons
 
-Touchord uses the six buttons consistently enough that you can build muscle memory:
+Touchord uses the three control buttons consistently enough that you can build muscle memory:
 
 | Button | Usual Role |
 | --- | --- |
 | `B1` | Advance to the next mode, or exit Settings |
 | `B2` | Usually octave down, or Back in Settings |
 | `B3` | Usually octave up, or Enter/Apply in Settings |
-| `B4-B6` | Select one of the three stored key/scale slots |
 
 ### Chord keys
 
@@ -239,28 +238,17 @@ Every mode transition clears sounding notes so the instrument stays stable.
 
 Before learning the individual modes, learn these four global ideas.
 
-### A. Key slots
-
-Buttons `B4`, `B5`, and `B6` select one of three stored key/scale slots.
-
-Each slot contains:
-
-- a root note
-- a scale type
-
-That means you can keep three harmonic worlds ready to go and switch among them from the front panel.
-
-### B. Octave
+### A. Octave
 
 Buttons `B2` and `B3` usually move the current octave down or up. The meaning is slightly mode-specific, but the mental model is always the same: you are shifting where the generated notes sit.
 
-### C. Extension count
+### B. Extension count
 
 In chordal and strumming modes, extension count changes how many notes are used from the chord stack.
 
 For example, a lower extension count feels leaner and simpler, while a higher count feels fuller.
 
-### D. Trill segments
+### C. Trill segments
 
 Touchord often divides the Trill bar into virtual segments. The segments are not printed on the hardware, but the firmware treats zones of the bar as separate selections.
 
@@ -284,11 +272,10 @@ Compose mode lets you:
 
 ### How to use it
 
-1. Choose a key slot with `B4-B6`.
-2. Press one of the seven chord keys.
-3. Watch the OLED update with the chord name.
-4. Slide on the Trill bar to change the chord shape.
-5. Release the key to stop the chord, unless sustain is enabled.
+1. Press one of the seven chord keys.
+2. Watch the OLED update with the chord name.
+3. Slide on the Trill bar to change the chord shape.
+4. Release the key to stop the chord, unless sustain is enabled.
 
 ### Compose controls
 
@@ -297,7 +284,6 @@ Compose mode lets you:
 | `B1` | Move to `Perform` |
 | `B2` | Octave down |
 | `B3` | Octave up |
-| `B4-B6` | Select key slot |
 | Trill bar | Change degree behavior or inversion, depending on setting |
 
 ### Compose Trill behavior
@@ -325,10 +311,9 @@ Compose mode sends exact note-off and note-on changes only for notes that actual
 
 Print this page and try:
 
-1. Pick one key slot.
-2. Play all seven chord keys slowly.
-3. For each key, sweep the Trill bar from one side to the other.
-4. Notice which parts of the chord stay stable and which parts change.
+1. Play all seven chord keys slowly.
+2. For each key, sweep the Trill bar from one side to the other.
+3. Notice which parts of the chord stay stable and which parts change.
 
 ## 9. Perform Mode
 
@@ -356,16 +341,15 @@ Perform mode lets you:
 | `B1` | Move to `Strum` |
 | `B2` | Octave down |
 | `B3` | Octave up |
-| `B4-B6` | Select key slot |
 | Trill bar | Sends position CC and size CC |
 
-### The important built-in synth caveat
+### The built-in synth response
 
 In the current firmware:
 
 - note playback works in `Internal`
 - the Trill bar still sends CC-style performance data
-- the internal AMY path does not yet convert that CC data into audible filter or modulation changes
+- the internal AMY path now converts that CC data into audible filter cutoff and filter modulation changes
 
 So Perform mode currently behaves like this:
 
@@ -412,7 +396,6 @@ Use Strum mode when you want:
 | `B3` | Octave up |
 | Double `B2` | Decrease extension count |
 | Double `B3` | Increase extension count |
-| `B4-B6` | Select key slot |
 
 ### Why Strum mode is one of the best standalone modes
 
@@ -454,7 +437,6 @@ Use Omni mode when you want:
 | `B3` | Octave up |
 | Double `B2` | Decrease octave span |
 | Double `B3` | Increase octave span |
-| `B4-B6` | Select key slot |
 
 ### Why Omni mode is good with the built-in synth
 
@@ -487,7 +469,6 @@ Drum mode maps the seven keys to direct note triggers instead of chord generatio
 | `B1` | Move to `Settings` |
 | `B2` | Octave down |
 | `B3` | Octave up |
-| `B4-B6` | Select key slot |
 | Trill bar | Sets drum velocity |
 
 ### Important limitation
@@ -529,13 +510,11 @@ flowchart TD
   C --> C3["Velocity"]
   C --> C4["Output"]
 
-  D --> D1["Button 1 key slot"]
-  D --> D2["Button 2 key slot"]
-  D --> D3["Button 3 key slot"]
-  D --> D4["Custom 0"]
-  D --> D5["Custom 1"]
-  D --> D6["Custom 2"]
-  D --> D7["Custom 3"]
+  D --> D1["Key"]
+  D --> D2["Custom 0"]
+  D --> D3["Custom 1"]
+  D --> D4["Custom 2"]
+  D --> D5["Custom 3"]
 
   G --> G1["Reset Factory"]
   G --> G2["Firmware Update"]
@@ -564,7 +543,7 @@ Use this section to set:
 
 Use this section to define:
 
-- the three main key/scale slots
+- the active key and scale
 - the four custom scales
 
 #### Firmware
@@ -619,7 +598,7 @@ flowchart LR
 | Program change support in engine | Active, but not exposed in normal UI |
 | Sustain pedal support in engine | Active, but not exposed in normal UI |
 | Pitch bend support in engine | Active, but not exposed in normal UI |
-| Perform-mode CC mapping to local synth | Not yet implemented |
+| Perform-mode CC mapping to local synth | Active |
 | Internal drum playback | Not yet implemented |
 
 ## 15. Quick Start Scenarios
@@ -687,7 +666,7 @@ That is expected. Drum mode currently does not use the internal synth path.
 
 ### Perform mode feels less expressive internally than externally
 
-That is also expected in the current firmware. The notes play internally, but the Trill CC messages are not yet mapped to audible AMY sound controls.
+That should no longer be true after the current AMY update. The notes play internally, and the Trill CC messages now drive audible filter and modulation changes on the built-in synth.
 
 ### I changed modes and my note stopped
 
@@ -725,7 +704,6 @@ If you only remember a few things, remember these:
 
 - `B1` cycles modes.
 - `B2` and `B3` usually move octave or edit values.
-- `B4-B6` choose the active key slot.
 - `Compose`, `Strum`, and `Omni` are the best current standalone synth modes.
 - `Perform` works internally for notes, but not yet for rich synth modulation.
 - `Drum` is external-only right now.

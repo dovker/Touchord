@@ -42,6 +42,10 @@ static TcSynthVoice tc_synth_voices[TC_SYNTH_VOICE_COUNT];
 static uint32_t tc_synth_voice_generation = 1;
 static bool tc_synth_pedal_down = false;
 static float tc_synth_pitch_bend_state = 0.0f;
+#if ENABLE_INTERNAL_SYNTH_CC_PITCH
+#define TC_SYNTH_CC_PITCH_CENTER 64
+#define TC_SYNTH_CC_PITCH_MAX_OCTAVES (2.0f / 12.0f)
+#endif
 
 static void tc_synth_fill_test_tone(size_t frame_count)
 {
@@ -63,6 +67,21 @@ static void tc_synth_noop_midi_input(uint8_t *bytes, uint16_t len, uint8_t is_sy
     (void)len;
     (void)is_sysex;
 }
+
+#if ENABLE_INTERNAL_SYNTH_CC_PITCH
+static float tc_synth_pitch_bend_from_cc(uint8_t value)
+{
+    float centered = ((float)value - (float)TC_SYNTH_CC_PITCH_CENTER) / 63.0f;
+
+    if (centered < -1.0f) {
+        centered = -1.0f;
+    } else if (centered > 1.0f) {
+        centered = 1.0f;
+    }
+
+    return centered * TC_SYNTH_CC_PITCH_MAX_OCTAVES;
+}
+#endif
 
 static void tc_synth_queue_event(TcSynthEventType type, uint16_t a, uint16_t b)
 {
@@ -300,6 +319,12 @@ static void tc_synth_dispatch_event(const TcSynthEvent *event)
             tc_synth_all_notes_off_immediate();
             break;
         case TC_SYNTH_EVENT_CC:
+#if ENABLE_INTERNAL_SYNTH_CC_PITCH
+            if ((uint8_t)event->a == tc_app.perform_pos_cc || (uint8_t)event->a == MIDI_CUTOFF) {
+                tc_synth_apply_pitch_bend(tc_synth_pitch_bend_from_cc((uint8_t)event->b));
+            }
+#endif
+            break;
         default:
             break;
     }

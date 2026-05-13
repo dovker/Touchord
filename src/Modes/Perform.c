@@ -44,7 +44,7 @@ void perform_update()
 void perform_key_down(uint8_t key)
 {
     tc_output_chord(tc_app.channel, NOTE_OFF, tc_app.chord, tc_app.extension_count, tc_app.velocity);
-    build_chord(tc_app.key[tc_app.current_key], tc_app.octave, key, tc_app.degree, 
+    build_chord(tc_app.key, tc_app.octave, key, tc_app.degree, 
                 tc_app.extension_count, tc_app.inversion, tc_app.chord, tc_app.chord_name);
     tc_output_chord(tc_app.channel, NOTE_ON, tc_app.chord, tc_app.extension_count, tc_app.velocity);
 }
@@ -53,7 +53,7 @@ void perform_key_up(uint8_t key)
 {
     tc_output_chord(tc_app.channel, NOTE_OFF, tc_app.chord, tc_app.extension_count, tc_app.velocity);
 
-    build_chord(tc_app.key[tc_app.current_key], tc_app.octave, 0, CHORD_DEFAULT, 
+    build_chord(tc_app.key, tc_app.octave, 0, CHORD_DEFAULT, 
                         0, tc_app.inversion, tc_app.chord, tc_app.chord_name);
     tc_app.chord_name[0] = '\0';
 }
@@ -74,9 +74,7 @@ void perform_button_down(uint8_t button)
         case 2: 
         if(tc_app.octave < 7) tc_app.octave++;
         break;
-        case 3: tc_app.current_key = 0; break;
-        case 4: tc_app.current_key = 1; break;
-        case 5: tc_app.current_key = 2; break;
+        default: break;
     }
 }
 

@@ -218,24 +218,12 @@ button.secondary{
   </section>
 
   <section class="section">
-    <div class="legend">Keys</div>
+    <div class="legend">Key</div>
     <div class="form-grid">
       <div class="field field--lg">
         <div class="keypair">
-          <input id="k0_root" placeholder="Root">
-          <select id="k0_quality"></select>
-        </div>
-      </div>
-      <div class="field field--lg">
-        <div class="keypair">
-          <input id="k1_root" placeholder="Root">
-          <select id="k1_quality"></select>
-        </div>
-      </div>
-      <div class="field field--lg">
-        <div class="keypair">
-          <input id="k2_root" placeholder="Root">
-          <select id="k2_quality"></select>
+          <input id="key_root" placeholder="Root">
+          <select id="key_quality"></select>
         </div>
       </div>
     </div>
@@ -357,22 +345,16 @@ const formToJSON = () => ({
   octave_count:+val("octave_count"),
   cutoff:+val("cutoff"),
   channel:+val("channel"),
-  key:[
-    { Root:val("k0_root"), Quality:+val("k0_quality") },
-    { Root:val("k1_root"), Quality:+val("k1_quality") },
-    { Root:val("k2_root"), Quality:+val("k2_quality") }
-  ]
+  key:{ Root:val("key_root"), Quality:+val("key_quality") }
 });
 
 function jsonToForm(j){
   ["octave","extension_count","inversion","velocity","octave_count","cutoff","channel"]
     .forEach(k => setValue(k, j[k]));
   setEnum($("mode"), MODE, j.mode);
-  for (let i = 0; i < 3; i++) {
-    const ki = j.key?.[i] || {};
-    setValue(`k${i}_root`, ki.Root ?? "");
-    setEnum($(`k${i}_quality`), QUALITY, ki.Quality ?? 0);
-  }
+  const key = Array.isArray(j.key) ? (j.key[0] || {}) : (j.key || {});
+  setValue("key_root", key.Root ?? "");
+  setEnum($("key_quality"), QUALITY, key.Quality ?? 0);
 }
 
 const LS_KEY = "touchord.preset.v1";
@@ -431,7 +413,7 @@ function enable(on){
 
 function initUI(){
   fillSelect($("mode"), MODE);
-  for (let i = 0; i < 3; i++) fillSelect($(`k${i}_quality`), QUALITY);
+  fillSelect($("key_quality"), QUALITY);
 
   loadLocal();
 

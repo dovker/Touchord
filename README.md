@@ -31,7 +31,7 @@ Touchord addresses these problems. Components are common, 3D‑printable, or man
   - Uses the RP2350 microcontroller chip.
   - Programmed with the PicoSDK in C.
   - Cherry MX style mechanical switches.
-  - 6 control buttons.
+  - 3 control buttons.
   - 7 chord keys sized 3u, equipped with 3u plate-mounted stabilizers for enhanced stability.
   - Touch bar: [Trill Bar by Bella](https://bela.io/products/trill/) ([GitHub](https://github.com/BelaPlatform/Trill)) providing multi-touch and pressure sensing.
   - Display: Standard 0.96" 128x64 OLED SSD1306 screen.
@@ -154,7 +154,7 @@ The raw serial commands are:
 
 ```text
 read
-write {"octave":5,"extension_count":4,"inversion":0,"velocity":100,"mode":0,"octave_count":3,"cutoff":0,"channel":0,"key":[{"Root":"C","Quality":4},{"Root":"E","Quality":2},{"Root":"D","Quality":10}]}
+write {"octave":5,"extension_count":4,"inversion":0,"velocity":100,"mode":0,"octave_count":3,"cutoff":0,"channel":0,"key":{"Root":"C","Quality":4}}
 ```
 
 If a change touches settings parsing, MIDI routing, or mode state, test both the on-device menu and the serial editor path before considering the change complete.
