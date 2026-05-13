@@ -151,14 +151,15 @@ void process_cmd(const char *line)
     if (!strcmp(line, "status"))
     {
         TcAudioStatus audio;
-        char response[512];
+        char response[768];
 
         tc_audio_get_status(&audio);
 
         snprintf(response, sizeof response,
             "{\"stage\":\"%s\",\"usb_inited\":%u,\"mounted\":%u,\"cdc\":%u,\"midi\":%u,\"synth_ready\":%u,\"tone\":%u,"
             "\"audio_init\":%u,\"audio_started\":%u,\"audio_busy\":%u,\"audio_blocks\":%lu,\"audio_dma\":%lu,"
-            "\"audio_underruns\":%lu,\"audio_frames\":%lu,\"audio_min\":%d,\"audio_max\":%d,"
+            "\"audio_underruns\":%lu,\"audio_frames\":%lu,\"audio_buffers\":%u,\"audio_queued\":%u,"
+            "\"audio_free\":%u,\"audio_silence\":%u,\"audio_min\":%d,\"audio_max\":%d,"
             "\"left_lrclk\":%u,\"i2s_delay\":%u,\"pair_swap\":%u}",
             tc_debug_get_stage(),
             tud_inited() ? 1u : 0u,
@@ -174,6 +175,10 @@ void process_cmd(const char *line)
             (unsigned long)audio.dma_transfers,
             (unsigned long)audio.underruns,
             (unsigned long)audio.last_frame_count,
+            audio.buffer_count,
+            audio.queued_buffers,
+            audio.free_buffers,
+            audio.playing_silence,
             audio.last_min_sample,
             audio.last_max_sample,
             audio.left_lrclk_level,

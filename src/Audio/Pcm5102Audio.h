@@ -14,6 +14,10 @@ typedef struct
     uint32_t dma_transfers;
     uint32_t underruns;
     uint32_t last_frame_count;
+    uint8_t buffer_count;
+    uint8_t queued_buffers;
+    uint8_t free_buffers;
+    uint8_t playing_silence;
     int16_t last_min_sample;
     int16_t last_max_sample;
     uint8_t left_lrclk_level;

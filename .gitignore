@@ -1,4 +1,6 @@
 build
+build-pico2/*
+build-rp2040-zero/*
 !.vscode/*
 settings_editor
 amy/

@@ -7,7 +7,9 @@
 #include "amy.h"
 #include "hardware/clocks.h"
 #include "hardware/dma.h"
+#include "hardware/irq.h"
 #include "hardware/pio.h"
+#include "hardware/sync.h"
 
 #include "tc_audio_i2s.pio.h"
 
@@ -34,6 +36,18 @@
 #define TC_AUDIO_DEFAULT_I2S_DELAY   true
 #define TC_AUDIO_DEFAULT_PAIR_SWAP   false
 
+#if AUDIO_I2S_BUFFER_COUNT < 2
+#error "AUDIO_I2S_BUFFER_COUNT must be at least 2"
+#endif
+
+typedef enum
+{
+    TC_AUDIO_BUFFER_FREE = 0,
+    TC_AUDIO_BUFFER_FILLING,
+    TC_AUDIO_BUFFER_QUEUED,
+    TC_AUDIO_BUFFER_PLAYING
+} TcAudioBufferState;
+
 static PIO tc_audio_pio(void)
 {
     return AUDIO_I2S_PIO_INDEX ? pio1 : pio0;
@@ -46,7 +60,13 @@ static uint tc_audio_dreq(void)
 
 static bool tc_audio_started = false;
 static bool tc_audio_initialized = false;
-static uint8_t tc_audio_next_buffer = 0;
+static volatile int8_t tc_audio_playing_buffer = -1;
+static volatile bool tc_audio_playing_silence = false;
+static volatile uint8_t tc_audio_queue[AUDIO_I2S_BUFFER_COUNT];
+static volatile uint8_t tc_audio_queue_read = 0;
+static volatile uint8_t tc_audio_queue_write = 0;
+static volatile uint8_t tc_audio_queue_count = 0;
+static volatile TcAudioBufferState tc_audio_buffer_states[AUDIO_I2S_BUFFER_COUNT];
 static volatile uint32_t tc_audio_blocks_written = 0;
 static volatile uint32_t tc_audio_dma_transfers = 0;
 static volatile uint32_t tc_audio_underruns = 0;
@@ -56,7 +76,9 @@ static volatile int16_t tc_audio_last_max_sample = 0;
 static volatile bool tc_audio_left_lrclk = TC_AUDIO_DEFAULT_LRCLK_LEFT;
 static volatile bool tc_audio_i2s_delay = TC_AUDIO_DEFAULT_I2S_DELAY;
 static volatile bool tc_audio_pin_pair_swap = TC_AUDIO_DEFAULT_PAIR_SWAP;
-static uint32_t tc_audio_packed_buffers[2][AMY_BLOCK_SIZE * TC_AUDIO_WORDS_PER_FRAME];
+static const int16_t tc_audio_zero_samples[AMY_BLOCK_SIZE * 2u] = {0};
+static uint32_t tc_audio_silence_buffer[AMY_BLOCK_SIZE * TC_AUDIO_WORDS_PER_FRAME];
+static uint32_t tc_audio_packed_buffers[AUDIO_I2S_BUFFER_COUNT][AMY_BLOCK_SIZE * TC_AUDIO_WORDS_PER_FRAME];
 
 static uint32_t tc_audio_pack_pin_pair(uint32_t sample_bit, uint32_t lrclk_bit)
 {
@@ -101,10 +123,106 @@ static void tc_audio_pack(const int16_t *samples, uint32_t *packed, size_t frame
     }
 }
 
-static void tc_audio_start_dma(const uint32_t *packed, size_t frame_count)
+static void tc_audio_start_dma(const uint32_t *packed, size_t word_count)
 {
-    dma_channel_transfer_from_buffer_now(AUDIO_I2S_DMA_CHANNEL, packed, frame_count);
+    dma_channel_transfer_from_buffer_now(AUDIO_I2S_DMA_CHANNEL, packed, word_count);
     tc_audio_dma_transfers++;
+}
+
+static bool tc_audio_pop_queued_buffer(uint8_t *buffer_index)
+{
+    if (tc_audio_queue_count == 0) {
+        return false;
+    }
+
+    *buffer_index = tc_audio_queue[tc_audio_queue_read];
+    tc_audio_queue_read = (uint8_t)((tc_audio_queue_read + 1u) % AUDIO_I2S_BUFFER_COUNT);
+    tc_audio_queue_count--;
+    return true;
+}
+
+static void tc_audio_start_next_dma(void)
+{
+    uint8_t buffer_index;
+    const size_t word_count = AMY_BLOCK_SIZE * TC_AUDIO_WORDS_PER_FRAME;
+
+    if (tc_audio_pop_queued_buffer(&buffer_index)) {
+        tc_audio_playing_buffer = (int8_t)buffer_index;
+        tc_audio_playing_silence = false;
+        tc_audio_buffer_states[buffer_index] = TC_AUDIO_BUFFER_PLAYING;
+        tc_audio_start_dma(tc_audio_packed_buffers[buffer_index], word_count);
+    } else {
+        tc_audio_playing_buffer = -1;
+        tc_audio_playing_silence = true;
+        tc_audio_underruns++;
+        tc_audio_start_dma(tc_audio_silence_buffer, word_count);
+    }
+
+    tc_audio_started = true;
+}
+
+static void __isr __time_critical_func(tc_audio_dma_irq_handler)(void)
+{
+    if (!dma_irqn_get_channel_status(0, AUDIO_I2S_DMA_CHANNEL)) {
+        return;
+    }
+
+    dma_irqn_acknowledge_channel(0, AUDIO_I2S_DMA_CHANNEL);
+
+    if (tc_audio_playing_buffer >= 0) {
+        tc_audio_buffer_states[(uint8_t)tc_audio_playing_buffer] = TC_AUDIO_BUFFER_FREE;
+        tc_audio_playing_buffer = -1;
+    }
+    tc_audio_playing_silence = false;
+
+    tc_audio_start_next_dma();
+}
+
+static uint8_t tc_audio_acquire_free_buffer(void)
+{
+    while (true) {
+        uint32_t ints = save_and_disable_interrupts();
+
+        for (uint8_t i = 0; i < AUDIO_I2S_BUFFER_COUNT; ++i) {
+            if (tc_audio_buffer_states[i] == TC_AUDIO_BUFFER_FREE) {
+                tc_audio_buffer_states[i] = TC_AUDIO_BUFFER_FILLING;
+                restore_interrupts(ints);
+                return i;
+            }
+        }
+
+        restore_interrupts(ints);
+        tight_loop_contents();
+    }
+}
+
+static void tc_audio_queue_filled_buffer(uint8_t buffer_index)
+{
+    uint32_t ints = save_and_disable_interrupts();
+
+    tc_audio_buffer_states[buffer_index] = TC_AUDIO_BUFFER_QUEUED;
+    tc_audio_queue[tc_audio_queue_write] = buffer_index;
+    tc_audio_queue_write = (uint8_t)((tc_audio_queue_write + 1u) % AUDIO_I2S_BUFFER_COUNT);
+    tc_audio_queue_count++;
+
+    if (!tc_audio_started) {
+        tc_audio_start_next_dma();
+    }
+
+    restore_interrupts(ints);
+}
+
+static uint8_t tc_audio_count_free_buffers(void)
+{
+    uint8_t free_buffers = 0;
+
+    for (uint8_t i = 0; i < AUDIO_I2S_BUFFER_COUNT; ++i) {
+        if (tc_audio_buffer_states[i] == TC_AUDIO_BUFFER_FREE) {
+            free_buffers++;
+        }
+    }
+
+    return free_buffers;
 }
 
 static void tc_audio_record_sample_range(const int16_t *samples, size_t sample_count)
@@ -196,13 +314,25 @@ bool tc_audio_init(void)
         0,
         false
     );
+    irq_add_shared_handler(DMA_IRQ_0, tc_audio_dma_irq_handler, PICO_SHARED_IRQ_HANDLER_DEFAULT_ORDER_PRIORITY);
+    dma_irqn_set_channel_enabled(0, AUDIO_I2S_DMA_CHANNEL, true);
+    irq_set_enabled(DMA_IRQ_0, true);
 
     pio_sm_set_enabled(pio, AUDIO_I2S_SM, true);
 
     memset(tc_audio_packed_buffers, 0, sizeof(tc_audio_packed_buffers));
+    for (uint8_t i = 0; i < AUDIO_I2S_BUFFER_COUNT; ++i) {
+        tc_audio_queue[i] = 0;
+        tc_audio_buffer_states[i] = TC_AUDIO_BUFFER_FREE;
+    }
+    tc_audio_pack(tc_audio_zero_samples, tc_audio_silence_buffer, AMY_BLOCK_SIZE);
     tc_audio_initialized = true;
     tc_audio_started = false;
-    tc_audio_next_buffer = 0;
+    tc_audio_playing_buffer = -1;
+    tc_audio_playing_silence = false;
+    tc_audio_queue_read = 0;
+    tc_audio_queue_write = 0;
+    tc_audio_queue_count = 0;
     tc_audio_blocks_written = 0;
     tc_audio_dma_transfers = 0;
     tc_audio_underruns = 0;
@@ -220,21 +350,12 @@ bool tc_audio_init(void)
 
 void tc_audio_write_blocking(const int16_t *samples, size_t frame_count)
 {
-    uint32_t *packed = tc_audio_packed_buffers[tc_audio_next_buffer];
+    uint8_t buffer_index = tc_audio_acquire_free_buffer();
+    uint32_t *packed = tc_audio_packed_buffers[buffer_index];
 
     tc_audio_record_sample_range(samples, frame_count * 2u);
     tc_audio_pack(samples, packed, frame_count);
-
-    if (tc_audio_started) {
-        if (!dma_channel_is_busy(AUDIO_I2S_DMA_CHANNEL)) {
-            tc_audio_underruns++;
-        }
-        dma_channel_wait_for_finish_blocking(AUDIO_I2S_DMA_CHANNEL);
-    }
-
-    tc_audio_start_dma(packed, frame_count * TC_AUDIO_WORDS_PER_FRAME);
-    tc_audio_started = true;
-    tc_audio_next_buffer ^= 1u;
+    tc_audio_queue_filled_buffer(buffer_index);
     tc_audio_blocks_written++;
     tc_audio_last_frame_count = (uint32_t)frame_count;
 }
@@ -252,6 +373,10 @@ void tc_audio_get_status(TcAudioStatus *status)
     status->dma_transfers = tc_audio_dma_transfers;
     status->underruns = tc_audio_underruns;
     status->last_frame_count = tc_audio_last_frame_count;
+    status->buffer_count = AUDIO_I2S_BUFFER_COUNT;
+    status->queued_buffers = tc_audio_queue_count;
+    status->free_buffers = tc_audio_count_free_buffers();
+    status->playing_silence = tc_audio_playing_silence ? 1u : 0u;
     status->last_min_sample = tc_audio_last_min_sample;
     status->last_max_sample = tc_audio_last_max_sample;
     status->left_lrclk_level = tc_audio_left_lrclk ? 1u : 0u;
