@@ -66,18 +66,25 @@ Touchord addresses these problems. Components are common, 3D‑printable, or man
 
 ---
 
+## Contribution
+
+Check `CONTRIBUTING.md` for more info.
+
+---
+
 ## Showcase
 
 [![Showcase video](https://img.youtube.com/vi/dFS27xT5Rgg/0.jpg)](https://www.youtube.com/watch?v=dFS27xT5Rgg)
-![Touchord standard edition](./img/DSC_5180.jpg)  
-![Touchord On a grander scale](./img/DSC_5172.jpg)  
-![Touchord PCB](./img/Touchord%20Board%20Visual.png)  
+![Touchord standard edition](./img/DSC_5180.jpg)
+![Touchord On a grander scale](./img/DSC_5172.jpg)
+![Touchord PCB](./img/Touchord%20Board%20Visual.png)
 
 ## Projects based on Touchord
 
 ### "Ghetto" Touchord made using Pico 2W by [nlpeeee](https://github.com/nlpeeee/TCw)
-!["Ghetto Touchord"](./img/ghettotouchard.jpeg)  
+!["Ghetto Touchord"](./img/ghettotouchard.jpeg)
+
 ---
 
-*Find the Trill Bar by Bella:* [https://bela.io/products/trill/](https://bela.io/products/trill/) 
-*Trill Bar GitHub repository:* [https://github.com/bela-platform/trill](https://github.com/BelaPlatform/Trill)  
+*Find the Trill Bar by Bella:* [https://bela.io/products/trill/](https://bela.io/products/trill/)
+*Trill Bar GitHub repository:* [https://github.com/bela-platform/trill](https://github.com/BelaPlatform/Trill)
