@@ -13,6 +13,25 @@ Making music without formal training is hard. Learning theory takes time, and wh
 
 Touchord addresses these problems. Components are common, 3D‑printable, or manufacturable at a reasonable cost, thus repairs and replacements remain feasible. Open development also streamlines bug fixes and issue tracking because contributors can help accelerate software improvements. And if we for some reason stop developing new updates or cannot contribute anymore, community still remains along with the source code and all the production files, keeping the project alive.
 
+## Licensing and Legal Notice
+
+**Copyright © 2026 MB Dugdara. All rights reserved.**
+
+**Trademarks:**
+- Touchord™ is a trademark of MB Daugdara
+- Touchord™ logo is a trademark of MB Daugdara
+
+**Intellectual Property:**
+- The Touchord name and logo are the exclusive property of MB Daugdara
+- Firmware is licensed under 
+- The 3D model design files and PCB Files are licensed under CERN-OHL-S-2.0
+- The license does not grant rights to use the company name or logo
+
+**Restrictions:**
+- You may not use the company name or logo to endorse derivative commercial works
+- You must include this notice when distributing modified versions
+- See LICENSE file for full CERN-OHL-S-2.0 terms
+
 
 ## Features
 
