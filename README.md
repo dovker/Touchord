@@ -15,7 +15,7 @@ Touchord addresses these problems. Components are common, 3D‑printable, or man
 
 ## Licensing and Legal Notice
 
-**Copyright © 2026 MB Dugdara. All rights reserved.**
+**Copyright © 2026 MB Daugdara. All rights reserved.**
 
 **Trademarks:**
 - Touchord™ is a trademark of MB Daugdara
