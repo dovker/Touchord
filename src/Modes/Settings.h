@@ -1,3 +1,11 @@
+/*
+ * Touchord — MIDI chord controller firmware.
+ * Copyright (C) 2025-2026 MB Daugdara
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ *
+ * For more info, email info@daugdara.com
+ */
+
 #ifndef TOUCHORD_SETTINGS_H
 #define TOUCHORD_SETTINGS_H
 
@@ -5,17 +13,6 @@
 #include "pico/stdlib.h"
 #include "Defines.h"
 #include "Types.h"
-
-//TODO: Change touchbar functionality (Chord deg, Inv, Sus)
-// Change Perform mode function (Size / Pos action), range
-
-// MIDI Default Velocity, Channel, TRS Midi switch
-
-// Presets: 8
-
-// Save Settings
-
-// Firmware: Bootsel, Default settings, About
 
 void settings_start();
 void settings_end();

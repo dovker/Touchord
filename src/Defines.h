@@ -1,3 +1,11 @@
+/*
+ * Touchord — MIDI chord controller firmware.
+ * Copyright (C) 2025-2026 MB Daugdara
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ *
+ * For more info, email info@daugdara.com
+ */
+
 #ifndef TOUCHORD_DEFINES_H
 #define TOUCHORD_DEFINES_H
 
@@ -17,8 +25,30 @@
 
 #define DEFAULT_DOUBLE_CLICK_MS 300
 
-#define PIN_SDA  16      
-#define PIN_SCL  17     
+#ifndef TOUCHORD_DUAL_I2C
+#define TOUCHORD_DUAL_I2C 1
+#endif
+
+#if TOUCHORD_DUAL_I2C
+#define TRILL_I2C       i2c0
+#define TRILL_PIN_SDA   16
+#define TRILL_PIN_SCL   17
+#define DISP_I2C        i2c1
+#define DISP_PIN_SDA    14
+#define DISP_PIN_SCL    15
+#else
+#define TRILL_I2C       i2c0
+#define TRILL_PIN_SDA   16
+#define TRILL_PIN_SCL   17
+#define DISP_I2C        i2c0
+#define DISP_PIN_SDA    16
+#define DISP_PIN_SCL    17
+#endif
+
+/* Back-compat aliases for the original single-bus pin names. */
+#define PIN_SDA  TRILL_PIN_SDA
+#define PIN_SCL  TRILL_PIN_SCL
+
 #define TRILL_ADDR 0x20
 #define DISP_ADDR 0x3C
 

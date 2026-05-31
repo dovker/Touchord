@@ -1,3 +1,11 @@
+/*
+ * Touchord — MIDI chord controller firmware.
+ * Copyright (C) 2025-2026 MB Daugdara
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ *
+ * For more info, email info@daugdara.com
+ */
+
 #ifndef TOUCHORD_NOTE_H
 #define TOUCHORD_NOTE_H
 
@@ -8,60 +16,15 @@
 #include "Types.h"
 #include "Globals.h"
 
-static const char* sharp_names[12] = {
-    "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
-};
-static const char* flat_names[12] = {
-    "C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"
-};
+extern const char* sharp_names[12];
+extern const char* flat_names[12];
+extern const char* root_names[17];   /* Note enum -> spelled name (C, C#, Db, ...) */
 
-static uint8_t scale_intervals[SCALE_COUNT][SCALE_LEN] = 
-{
-    { 0, 0, 0, 0, 0, 0, 0 }, // Null
-    { 0, 2, 4, 5, 7, 9, 11 }, // Maj
-    { 0, 2, 3, 5, 7, 8, 10 }, // Min
-    { 0, 2, 3, 5, 7, 9, 10 }, // Dorian
-    { 0, 1, 3, 5, 7, 8, 10 }, // Phrygian
-    { 0, 2, 4, 6, 7, 9, 11 }, // Lydian
-    { 0, 2, 4, 5, 7, 9, 10 }, // Mixolydian
-    { 0, 1, 3, 5, 6, 8, 10 }, // Locrian
-    { 0, 1, 2, 3, 4, 5, 6 }, // C0
-    { 0, 1, 2, 3, 4, 5, 6 }, // C1
-    { 0, 1, 2, 3, 4, 5, 6 }, // C2
-    { 0, 1, 2, 3, 4, 5, 6 }, // C3
-};
+extern uint8_t scale_intervals[SCALE_COUNT][SCALE_LEN];
+extern ChordDegree scale_chords[SCALE_COUNT][SCALE_LEN];
 
-static ChordDegree scale_chords[SCALE_COUNT][SCALE_LEN] = 
-{
-    {CHORD_MAJOR, CHORD_MAJOR, CHORD_MAJOR, CHORD_MAJOR, CHORD_MAJOR, CHORD_MAJOR, CHORD_MAJOR},
-    {CHORD_MAJOR, CHORD_MINOR, CHORD_MINOR, CHORD_MAJOR, CHORD_DOMINANT, CHORD_MINOR, CHORD_DIM}, // Maj
-    {CHORD_MINOR, CHORD_DIM, CHORD_MAJOR, CHORD_MINOR, CHORD_MINOR, CHORD_MAJOR, CHORD_MAJOR}, // Min
-    {CHORD_MINOR, CHORD_MINOR, CHORD_MAJOR, CHORD_DOMINANT, CHORD_MINOR, CHORD_DIM, CHORD_MAJOR}, // Dorian
-    {CHORD_MINOR, CHORD_MAJOR, CHORD_DOMINANT, CHORD_MINOR, CHORD_DIM, CHORD_MAJOR, CHORD_MINOR}, // Phrygian
-    {CHORD_MAJOR, CHORD_DOMINANT, CHORD_MINOR, CHORD_DIM, CHORD_MAJOR, CHORD_MINOR, CHORD_MINOR}, // Lydian
-    {CHORD_DOMINANT, CHORD_MINOR, CHORD_DIM, CHORD_MAJOR, CHORD_MINOR, CHORD_MINOR, CHORD_MAJOR}, // Mixolydian
-    {CHORD_DIM, CHORD_MAJOR, CHORD_MINOR, CHORD_MINOR, CHORD_MAJOR, CHORD_DOMINANT, CHORD_MINOR}, // Locrian
-    {CHORD_MAJOR, CHORD_MAJOR, CHORD_MAJOR, CHORD_MAJOR, CHORD_MAJOR, CHORD_MAJOR, CHORD_MAJOR}, // Custom0
-    {CHORD_MINOR, CHORD_MINOR, CHORD_MINOR, CHORD_MINOR, CHORD_MINOR, CHORD_MINOR, CHORD_MINOR},
-    {CHORD_DOMINANT, CHORD_DOMINANT, CHORD_DOMINANT, CHORD_DOMINANT, CHORD_DOMINANT, CHORD_DOMINANT, CHORD_DOMINANT},
-    {CHORD_DIM, CHORD_DIM, CHORD_DIM, CHORD_DIM, CHORD_DIM, CHORD_DIM, CHORD_DIM}, // Custom3
-};
-
-static const char* scale_names[SCALE_COUNT] = {
-    "NULL", "Major", "Minor", "Dorian", "Phrygian", "Lydian", "Mixolydian", "Locrian", "Custom 0", "Custom 1", "Custom 2", "Custom 3"
-};
-
-static const uint8_t chord_intervals[8][6] = 
-{
-    {0, 0, 0, 0,  0,  0},
-    {0, 4, 7, 11, 14, 18}, // Major
-    {0, 3, 7, 10, 14, 17}, // Minor
-    {0, 4, 7, 10, 14, 17}, // Dominant
-    {0, 3, 6, 10, 14, 17}, // Dim
-    {0, 4, 8, 0, 0, 0}, // Aug
-    {0, 2, 7, 0, 0, 0}, // Sus2
-    {0, 5, 7, 0, 0, 0}  // Sus4
-};
+extern const char* scale_names[SCALE_COUNT];
+extern const uint8_t chord_intervals[8][6];
 
 void reload_custom_scales();
 
@@ -70,8 +33,22 @@ const char* deg_name(ChordDegree deg);
 const char* get_note_name(int midi, bool flat);
 
 uint8_t note_name_to_midi(const char* note, int octave, bool* flat);
+uint8_t note_to_midi(Note note, int octave, bool* flat);
 
 void build_chord(Scale key, int octave, int degree, ChordDegree chord_type, int extensions, int inversion,
     uint8_t* midi_out, char* chord_name);
+
+static inline uint8_t chord_note_at(const uint8_t* chord, int seg, int ext)
+{
+    int n = chord[seg % ext] + (seg / ext) * 12;
+    return n > 127 ? 127 : (uint8_t)n;
+}
+
+void sort_chord_notes(uint8_t* arr, int len);
+
+void build_jazz_chord(Scale key, int octave, int degree, int sub_seg,
+    int extensions, uint8_t* out, char* name);
+
+void apply_voice_leading(uint8_t* chord, int extensions, const uint8_t* prev);
 
 #endif

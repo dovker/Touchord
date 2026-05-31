@@ -1,3 +1,11 @@
+/*
+ * Touchord — MIDI chord controller firmware.
+ * Copyright (C) 2025-2026 MB Daugdara
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ *
+ * For more info, email info@daugdara.com
+ */
+
 #ifndef TOUCHORD_TYPES_H
 #define TOUCHORD_TYPES_H
 
@@ -11,7 +19,7 @@ enum  {
   BLINK_SUSPENDED = 2500,
 };
 
-typedef enum 
+typedef enum
 {
     NOTE_C = 0,
     NOTE_C_SHARP,
@@ -32,7 +40,7 @@ typedef enum
     NOTE_B,
 } Note;
 
-typedef enum 
+typedef enum
 {
     TOUCHORD_COMPOSE = 0,
     TOUCHORD_PERFORM,
@@ -42,7 +50,7 @@ typedef enum
     TOUCHORD_SETTINGS
 } TouchordMode;
 
-typedef enum 
+typedef enum
 {
     CHORD_DEFAULT = 0,
     CHORD_MAJOR,
@@ -55,13 +63,13 @@ typedef enum
     CHORD_PARALLEL
 } ChordDegree;
 
-typedef enum 
+typedef enum
 {
     MIDI_TRS_A = 0,
     MIDI_TRS_B
 } MidiType;
 
-typedef enum 
+typedef enum
 {
     SCALE_NULL = 0,
     SCALE_MAJOR,
@@ -77,31 +85,34 @@ typedef enum
     SCALE_CUSTOM3
 } ScaleType;
 
-typedef enum 
+typedef enum
 {
     COMPOSE_DEGREE = 0,
     // COMPOSE_SUS,
-    COMPOSE_INV
+    COMPOSE_INV,
+    COMPOSE_JAZZ
 } ComposeType;
 
 #define SCALE_COUNT 12
 
-typedef struct 
+typedef struct
 {
     Note root;
     ScaleType quality;
 } Scale;
 
-typedef struct 
+typedef struct
 {
     uint32_t magic;
+    uint16_t schema_version;
+    uint16_t struct_size;
     Scale key[3];
     uint8_t current_key;
     uint8_t octave;
     uint8_t extension_count;
     uint8_t inversion;
     uint8_t velocity;
-    
+
     TouchordMode mode;
     uint8_t octave_count;
     uint8_t cutoff;
@@ -119,6 +130,7 @@ typedef struct
 
     ComposeType compose_type;
     bool compose_sustain;
+    bool compose_voice_lead;
 
     uint8_t perform_pos_cc;
     uint8_t perform_size_cc;
@@ -128,7 +140,7 @@ typedef struct
     bool perform_reset_size_on_lift;
 } TouchordSettings;
 
-typedef enum 
+typedef enum
 {
     UI_SUBMENU = 0, // Select Setting
     UI_INT, //Select int value

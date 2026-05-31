@@ -1,3 +1,46 @@
-build
-!.vscode/*
+# Build outputs
+build/
+out/
+cmake-build-*/
+
+# Pico / firmware artefacts
+*.elf
+*.elf.map
+*.uf2
+*.bin
+*.hex
+*.dis
+
+# Object / dependency files
+*.o
+*.obj
+*.a
+*.lib
+*.d
+
+# clangd / IDE caches
+.cache/
+.vscode/.tmp/
+.idea/
+*.swp
+*~
+.ccls-cache/
+compile_commands.json
+
+# OS noise
+.DS_Store
+Thumbs.db
+
+# Local VS Code user-only overrides
+.vscode/settings.local.json
+
+# Project-specific
 settings_editor
+
+# Keep checked-in editor configs
+!.vscode/launch.json
+!.vscode/tasks.json
+!.vscode/settings.json
+!.vscode/c_cpp_properties.json
+!.vscode/cmake-kits.json
+!.vscode/extensions.json

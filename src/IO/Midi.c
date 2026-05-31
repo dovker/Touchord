@@ -1,3 +1,11 @@
+/*
+ * Touchord — MIDI chord controller firmware.
+ * Copyright (C) 2025-2026 MB Daugdara
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ *
+ * For more info, email info@daugdara.com
+ */
+
 #include "Midi.h"
 #include "tusb.h"
 #include "hardware/uart.h"
@@ -49,6 +57,34 @@ void send_midi_chord(uint8_t channel, uint8_t status, uint8_t* notes, uint8_t le
     }
 }
 
+void send_midi_chord_diff(const uint8_t *prev, const uint8_t *curr,
+                          uint8_t channel, uint8_t velocity, bool retrigger)
+{
+    if (retrigger) {
+        for (int i = 0; i < MAX_CHORD; i++)
+            if (prev[i]) send_midi_note(channel, NOTE_OFF, prev[i], velocity);
+        for (int i = 0; i < MAX_CHORD; i++)
+            if (curr[i]) send_midi_note(channel, NOTE_ON,  curr[i], velocity);
+        return;
+    }
+    for (int i = 0; i < MAX_CHORD; i++) {
+        uint8_t p = prev[i];
+        if (p == 0) continue;
+        bool kept = false;
+        for (int j = 0; j < MAX_CHORD; j++)
+            if (curr[j] == p) { kept = true; break; }
+        if (!kept) send_midi_note(channel, NOTE_OFF, p, velocity);
+    }
+    for (int i = 0; i < MAX_CHORD; i++) {
+        uint8_t c = curr[i];
+        if (c == 0) continue;
+        bool was = false;
+        for (int j = 0; j < MAX_CHORD; j++)
+            if (prev[j] == c) { was = true; break; }
+        if (!was) send_midi_note(channel, NOTE_ON, c, velocity);
+    }
+}
+
 void send_midi_note(uint8_t channel, uint8_t status, uint8_t note, uint8_t velocity) {
     uint8_t packet[3] = {
         status | (channel & 0x0F),
@@ -84,7 +120,7 @@ void send_poly_aftertouch(uint8_t channel, uint8_t note, uint8_t pressure) {
 
 void send_aftertouch(uint8_t channel, uint8_t pressure)
 {
-    uint8_t status = 0xA0 | (channel & 0x0F);
+    uint8_t status = 0xD0 | (channel & 0x0F);
 
     uint8_t packet[2] = {
         status,

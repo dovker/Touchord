@@ -1,21 +1,26 @@
+/*
+ * Touchord — MIDI chord controller firmware.
+ * Copyright (C) 2025-2026 MB Daugdara
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ *
+ * For more info, email info@daugdara.com
+ */
+
 #include "Perform.h"
 #include "Globals.h"
+#include "Sync.h"
 #include "IO/Midi.h"
 #include "Notes/Note.h"
 #include "Rendering/Graphics.h"
 
 
+static const ModeHandlers perform_handlers = TC_MODE_HANDLERS(perform);
+
 void perform_start()
 {
-    tc_draw        = &perform_draw;
-    tc_update      = &perform_update;
-    tc_key_down    = &perform_key_down;
-    tc_key_up      = &perform_key_up;
-    tc_key_up_independent      = &perform_key_up_independent;
-    tc_button_down = &perform_button_down;
-    tc_button_up   = &perform_button_up;
-    tc_trill_down  = &perform_trill_down;
-    tc_trill_up    = &perform_trill_up;
+    tc_bind_handlers(&perform_handlers);
+    tc_trill_segs = 0;
+    tc_trill_show = true;
 }
 
 void perform_end()
@@ -29,10 +34,7 @@ void perform_end()
 void perform_draw()
 {
     draw_current_chord();
-
-    ssd1306_draw_line(&tc_disp, 0, 60, 30, 60);
-    ssd1306_draw_string_with_font(&tc_disp, 37, 54, 2, font_3x6, "Perform");
-    ssd1306_draw_line(&tc_disp, 96, 60, 128, 60);
+    draw_mode_label("Perform");
 }
 
 void perform_update()
@@ -40,19 +42,25 @@ void perform_update()
 
 }
 
+static int8_t perform_active_key = -1;
+
 void perform_key_down(uint8_t key)
 {
     send_midi_chord(tc_app.channel, NOTE_OFF, tc_app.chord, tc_app.extension_count, tc_app.velocity);
-    build_chord(tc_app.key[tc_app.current_key], tc_app.octave, key, tc_app.degree, 
+    build_chord(tc_app.key[tc_app.current_key], tc_app.octave, key, tc_app.degree,
                 tc_app.extension_count, tc_app.inversion, tc_app.chord, tc_app.chord_name);
     send_midi_chord(tc_app.channel, NOTE_ON, tc_app.chord, tc_app.extension_count, tc_app.velocity);
+    perform_active_key = (int8_t)key;
 }
 
 void perform_key_up(uint8_t key)
 {
+    if (perform_active_key != (int8_t)key) return;
+    perform_active_key = -1;
+
     send_midi_chord(tc_app.channel, NOTE_OFF, tc_app.chord, tc_app.extension_count, tc_app.velocity);
 
-    build_chord(tc_app.key[tc_app.current_key], tc_app.octave, 0, CHORD_DEFAULT, 
+    build_chord(tc_app.key[tc_app.current_key], tc_app.octave, 0, CHORD_DEFAULT,
                         0, tc_app.inversion, tc_app.chord, tc_app.chord_name);
     tc_app.chord_name[0] = '\0';
 }
@@ -66,11 +74,11 @@ void perform_button_down(uint8_t button)
 {
     switch(button)
     {
-        case 0: tc_app.mode = TOUCHORD_STRUM; break;
-        case 1: 
+        case 0: tc_app_set_mode(TOUCHORD_STRUM); break;
+        case 1:
         if(tc_app.octave > 0) tc_app.octave--;
         break;
-        case 2: 
+        case 2:
         if(tc_app.octave < 7) tc_app.octave++;
         break;
         case 3: tc_app.current_key = 0; break;
@@ -81,7 +89,7 @@ void perform_button_down(uint8_t button)
 
 void perform_button_double_down(uint8_t button)
 {
-    
+
 }
 
 void perform_button_up(uint8_t button)
