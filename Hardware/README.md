@@ -1,6 +1,6 @@
 ## Licensing and Legal Notice
 
-**Copyright © 2026 MB Dugdara. All rights reserved.**
+**Copyright © 2026 MB Daugdara. All rights reserved.**
 
 **Trademarks:**
 - Touchord™ is a trademark of MB Daugdara
