@@ -70,6 +70,11 @@ Touchord addresses these problems. Components are common, 3D‑printable, or man
 
 Check `CONTRIBUTING.md` for more info.
 
+### AI Usage
+
+AI usage on Bug Fixes and Code Auditing is welcome, if done with proper testing, cleanup and no blind trust. Please disclose AI usage in Pull Requests.
+Features are better left for humans to write.
+
 ---
 
 ## Showcase
