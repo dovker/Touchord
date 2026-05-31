@@ -40,6 +40,7 @@ Touchord addresses these problems. Components are common, 3D‑printable, or man
   - **Omni Mode:** An omni-chord style play mode mimicking the strumming of an omnichord.
   - **Composer Mode:** Allows adjustment of chord qualities directly via the touch bar for chord customization.
   - **Perform Mode:** Uses the touch bar’s pressure sensitivity for expressive live performances.
+  - **Drum Mode:** A simple mode with chromatically mapped keys and the touch bar controlling velocity.
 
 - **Chord Layout:**
   - Each key corresponds to a chord degree in a musical key.
