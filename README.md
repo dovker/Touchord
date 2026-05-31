@@ -23,7 +23,7 @@ Touchord addresses these problems. Components are common, 3D‑printable, or man
 
 **Intellectual Property:**
 - The Touchord name and logo are the exclusive property of MB Daugdara
-- Firmware is licensed under 
+- Firmware is licensed under GNU General Public License v3.0
 - The 3D model design files and PCB Files are licensed under CERN-OHL-S-2.0
 - The license does not grant rights to use the company name or logo
 
