@@ -1,0 +1,6 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "MCU_RaspberryPi_RP2350")(type "KiCad")(uri "/Users/dovai/Downloads/RP-006440-DD-2-RP2350A Minimal Board Kicad archive/MCU_RaspberryPi_RP2350.kicad_sym")(options "")(descr ""))
+  (lib (name "TS5A23157DGSR")(type "KiCad")(uri "/Users/dovai/Downloads/TS5A23157DGSR/TS5A23157DGSR.kicad_sym")(options "")(descr ""))
+  (lib (name "DX07S016JA1R1500")(type "KiCad")(uri "/Users/dovai/Downloads/DX07S016JA1R1500/DX07S016JA1R1500.kicad_sym")(options "")(descr ""))
+)
