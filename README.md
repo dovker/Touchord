@@ -81,14 +81,26 @@ Features are better left for humans to write.
 ## Showcase
 
 [![Showcase video](https://img.youtube.com/vi/dFS27xT5Rgg/0.jpg)](https://www.youtube.com/watch?v=dFS27xT5Rgg)
-![Touchord standard edition](./img/DSC_5180.jpg)
 ![Touchord On a grander scale](./img/DSC_5172.jpg)
 ![Touchord PCB](./img/Touchord%20Board%20Visual.png)
+
+## User Showcase
+![User Made Touchord with cool colors](./img/UserMade1.jpeg)
 
 ## Projects based on Touchord
 
 ### "Ghetto" Touchord made using Pico 2W by [nlpeeee](https://github.com/nlpeeee/TCw)
 !["Ghetto Touchord"](./img/ghettotouchard.jpeg)
+
+## Special Thanks
+
+I wanted to share my experience with [PCBWay](https://www.pcbway.com/), as I used it for prototyping and although they have helped me produce one of the batches at their cost, this opinion is my own. My choice to go with PCB Way was first, and only then did I ask for their help.
+
+They have been an amazing experience, especially comparing to their biggest competitors, as for the same price I was able to manufacture boards of way better quality. I couldn't have made this project without PCBA services, as soldering small footprint components are too time consuming and expensive to setup.
+
+What I have found is that the quality of thru-holes, soldering are way better and feel like an actual professional product instead of a draft board. Also, the fact that components can be sourced from anywhere, it doesn't have to be a specific selection of components and other components costing more than a standard price, unlike their competitors. Also, their care of the customer surprised me as I was asked multiple times, whether the components I chose are the right ones (There have been issues with the BOM), and one of the more suprising questions I got was whether the color of soldermask could be changes, as properties of black soldermask wouldn'tve played well with my design. That was amazing, as other service providers just apply blind trust and manufacture the board.
+
+Overall, an amazing experience, especially for anyone looking to prototype PCB's that don't feel like toys, guaranteeing that what you designed will be what you get.
 
 ---
 
